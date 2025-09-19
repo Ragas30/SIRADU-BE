@@ -1,9 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../generated/prisma"
@@ -15,9 +9,77 @@ datasource db {
 }
 
 model User {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  name      String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id              String              @id @default(cuid())
+  role            Role
+  name            String
+  email        String              @unique
+  password        String
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+  reposisiHistory ReposisiHistory[]
+  ruanganYangDipegang Ruangan[]       @relation("PerawatRuangan")
+}
+
+enum Role {
+  KEPALA_PERAWAT
+  PERAWAT
+}
+
+model Pasien {
+  id           String              @id @default(cuid())
+  name         String
+  nik          String              @unique
+  tanggalLahir DateTime
+  idRuangan    String
+  gender       Gender
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  ruangan      Ruangan             @relation(fields: [idRuangan], references: [id])
+  conditions   PatientCondition[]
+  reposisi     ReposisiHistory[]
+}
+
+enum Gender {
+  LAKI_LAKI
+  PEREMPUAN
+}
+
+model PatientCondition {
+  id                String   @id @default(cuid())
+  persepsiSensori   String
+  kelembapan        String
+  aktivitas         String
+  mobilisasi        String
+  resiko            Resiko
+  pasienId          String
+  pasien            Pasien   @relation(fields: [pasienId], references: [id])
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+enum Resiko {
+  TINGGI
+  SEDANG
+  RENDAH
+  SANGAT_TINGGI
+}
+
+model ReposisiHistory {
+  id            String   @id @default(cuid())
+  pasienId      String
+  posisi        String
+  perawatId     String
+  skinCondition String
+  timestamp     DateTime @default(now())
+  foto          String?
+  pasien        Pasien   @relation(fields: [pasienId], references: [id])
+  perawat       User     @relation(fields: [perawatId], references: [id])
+}
+
+model Ruangan {
+  id          String   @id @default(cuid())
+  namaRuangan String
+  idPerawat   String
+  perawat     User     @relation("PerawatRuangan", fields: [idPerawat], references: [id])
+  pasien      Pasien[]
 }
