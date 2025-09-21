@@ -1,15 +1,12 @@
 import { prismaClient } from "../app/database.js";
 import bcrypt from "bcrypt";
 import { ResponseError } from "../lib/error.response.js";
-import {Validation} from "../validation/validation.js";
-import {AuthValidation} from "../validation/auth.validation.js";
+import { Validation } from "../validation/validation.js";
+import { AuthValidation } from "../validation/auth.validation.js";
 
 export class AuthService {
   static async login(request) {
-    const loginRequest = Validation.validate(
-        AuthValidation.LOGIN,
-        request
-    );
+    const loginRequest = Validation.validate(AuthValidation.LOGIN, request);
 
     const user = await prismaClient.user.findUnique({
       where: { email: loginRequest.email },
@@ -25,5 +22,28 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  static async register(request) {
+    const registerRequest = Validation.validate(AuthValidation.REGISTER, request);
+
+    const user = await prismaClient.user.findUnique({
+      where: { email: registerRequest.email },
+    });
+
+    if (user) {
+      throw new ResponseError(400, "User already exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(registerRequest.password, 10);
+    const newUser = await prismaClient.user.create({
+      data: {
+        name: registerRequest.name,
+        email: registerRequest.email,
+        password: hashedPassword,
+      },
+    });
+
+    return newUser;
   }
 }

@@ -9,15 +9,15 @@ datasource db {
 }
 
 model User {
-  id              String              @id @default(cuid())
-  role            Role
-  name            String
-  email        String              @unique
-  password        String
-  createdAt       DateTime            @default(now())
-  updatedAt       DateTime            @updatedAt
-  reposisiHistory ReposisiHistory[]
-  ruanganYangDipegang Ruangan[]       @relation("PerawatRuangan")
+  id                  String            @id @default(cuid())
+  role                Role
+  name                String
+  email               String            @unique
+  password            String
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  reposisiHistory     ReposisiHistory[]
+  ruanganYangDipegang Ruangan[]         @relation("PerawatRuangan")
 }
 
 enum Role {
@@ -26,15 +26,15 @@ enum Role {
 }
 
 model Pasien {
-  id           String              @id @default(cuid())
+  id           String             @id @default(cuid())
   name         String
-  nik          String              @unique
+  nik          String             @unique
   tanggalLahir DateTime
   idRuangan    String
   gender       Gender
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  ruangan      Ruangan             @relation(fields: [idRuangan], references: [id])
+  createdAt    DateTime           @default(now())
+  updatedAt    DateTime           @updatedAt
+  ruangan      Ruangan            @relation(fields: [idRuangan], references: [id])
   conditions   PatientCondition[]
   reposisi     ReposisiHistory[]
 }
@@ -45,16 +45,16 @@ enum Gender {
 }
 
 model PatientCondition {
-  id                String   @id @default(cuid())
-  persepsiSensori   String
-  kelembapan        String
-  aktivitas         String
-  mobilisasi        String
-  resiko            Resiko
-  pasienId          String
-  pasien            Pasien   @relation(fields: [pasienId], references: [id])
-  createdAt         DateTime @default(now())
-  updatedAt         DateTime @updatedAt
+  id              String   @id @default(cuid())
+  persepsiSensori String
+  kelembapan      String
+  aktivitas       String
+  mobilisasi      String
+  resiko          Resiko
+  pasienId        String
+  pasien          Pasien   @relation(fields: [pasienId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 }
 
 enum Resiko {
