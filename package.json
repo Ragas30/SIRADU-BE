@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
+    "build:swagger": "node src/lib/swagger.cjs",
     "dev": "nodemon src/main.js"
   },
   "dependencies": {
@@ -20,6 +21,7 @@
     "nodemon": "^3.1.10",
     "pdfkit": "^0.17.2",
     "socket.io": "^4.8.1",
+    "swagger-autogen": "^2.23.7",
     "swagger-jsdoc": "^6.2.8",
     "swagger-ui-express": "^5.0.1",
     "zod": "^4.1.8"

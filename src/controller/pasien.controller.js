@@ -1,5 +1,5 @@
 export class PasienController {
-  async createPasien(req, res, next) {
+  static async createPasien(req, res, next) {
     try {
       const request = req.body;
       const result = await PasienService.createPasien(request);
@@ -13,7 +13,7 @@ export class PasienController {
     }
   }
 
-  async getAllPasiens(req, res, next) {
+  static async getAllPasiens(req, res, next) {
     try {
       const result = await PasienService.getAllPasiens();
       res.status(200).json({
@@ -26,7 +26,7 @@ export class PasienController {
     }
   }
 
-  async getPasienById(req, res, next) {
+  static async getPasienById(req, res, next) {
     try {
       const id = req.params.id;
       const result = await PasienService.getPasienById(id);
@@ -40,7 +40,7 @@ export class PasienController {
     }
   }
 
-  async updatePasien(req, res, next) {
+  static async updatePasien(req, res, next) {
     try {
       const id = req.params.id;
       const request = req.body;
@@ -55,7 +55,7 @@ export class PasienController {
     }
   }
 
-  async deletePasien(req, res, next) {
+  static async deletePasien(req, res, next) {
     try {
       const id = req.params.id;
       const result = await PasienService.deletePasien(id);
