@@ -1,11 +1,20 @@
 import { z } from "zod";
 
-export class RoomValidation {
+const idRuanganSchema = z.string().cuid({
+  message: "ID Ruangan harus berupa CUID yang valid",
+});
+
+const namaRuanganSchema = z.string()
+  .min(3, { message: "Nama Ruangan minimal 3 karakter" })
+  .max(50, { message: "Nama Ruangan maksimal 50 karakter" });
+
+  const idPerawatanSchema = z.string().cuid({
+  message: "ID Perawatan harus berupa CUID yang valid",
+});
+
+export class RuanganValidation {
   static CREATE = z.object({
-    namaRuangan: z
-      .string()
-      .min(3, { message: "Nama harus minimal 3 karakter" })
-      .max(50, { message: "Nama tidak boleh melebihi 50 karakter" }),
+    namaRuangan: namaRuanganSchema,
     kapasitas: z
       .number({
         required_error: "Kapasitas harus diisi",
@@ -41,5 +50,7 @@ export class RoomValidation {
       .max(100, { message: "Lokasi tidak boleh melebihi 100 karakter" })
       .optional(),
   });
+
+
 }
 

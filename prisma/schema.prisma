@@ -21,8 +21,8 @@ model User {
 }
 
 enum Role {
-  KEPALA_PERAWAT
-  PERAWAT
+  kepala_perawat
+  perawat
 }
 
 model Pasien {

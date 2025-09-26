@@ -1,6 +1,8 @@
 import { web } from "./app/web.js";
 import "dotenv/config";
 
+import "dotenv/config";
+console.log("DATABASE_URL at runtime:", process.env.DATABASE_URL);
 
 web.listen(3000, () => {
   console.log("listening on port 3000");
