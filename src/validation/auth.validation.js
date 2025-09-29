@@ -36,7 +36,6 @@ export class AuthPerawatValidation {
       name: nameSchema,
       email: emailSchema,
       password: strongPassword,
-      role: z.literal("perawat", { message: "Role harus perawat" }),
     })
     .strict();
 

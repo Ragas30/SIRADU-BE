@@ -1,21 +1,21 @@
 ### Test Ping
 GET http://localhost:3000/api
 
-### Login Dashboard
-POST http://localhost:3000/api/login
+### Login Nurse
+POST http://localhost:3000/api/nurse/login
 Content-Type: application/json
 
 {
-  "email": "john.doe.com",
-  "password": "123456"
+  "email": "john.doe@email.com",
+  "password": "12345678"
 }
 
-### Register
-POST http://localhost:3000/api/register
+### Register Nurse
+POST http://localhost:3000/api/nurse/add
 Content-Type: application/json
 
 {
   "name": "John Doe",
-  "email": "john.doe.com",
-  "password": "123456"
+  "email": "john.doe@email.com",
+  "password": "12345678"
 }

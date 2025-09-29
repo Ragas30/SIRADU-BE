@@ -17,11 +17,9 @@ const sanitizeUser = (user) => {
 };
 
 export class AuthService {
-  static async login(request) {
-    // Validasi login: email + password (tanpa role)
+  static async nurseLogin(request) {
     const loginRequest = Validation.validate(AuthValidation.LOGIN, request);
 
-    // Ambil hash password untuk verifikasi
     const user = await prismaClient.user.findUnique({
       where: { email: loginRequest.email },
       select: {
@@ -29,7 +27,7 @@ export class AuthService {
         name: true,
         email: true,
         role: true,
-        password: true, // <-- field Prisma 'password' (mapped to hashed_password)
+        password: true,
         createdAt: true,
         updatedAt: true,
       },
@@ -42,23 +40,24 @@ export class AuthService {
     return sanitizeUser(user);
   }
 
-  static async registerPerawat(request) {
+  static async nurseRegister(request) {
     const registerRequest = Validation.validate(AuthPerawatValidation.REGISTER, request);
 
     const existing = await prismaClient.user.findUnique({
       where: { email: registerRequest.email },
       select: { id: true },
     });
+
     if (existing) throw new ResponseError(400, "User already exists");
 
     const hashedPassword = await bcrypt.hash(registerRequest.password, 10);
 
-    const newUser = await prismaClient.user.create({
+    return await prismaClient.user.create({
       data: {
         name: registerRequest.name,
         email: registerRequest.email,
-        password: hashedPassword, // <-- simpan ke field Prisma 'password'
-        role: "perawat",
+        password: hashedPassword,
+        role: "PERAWAT",
       },
       select: {
         id: true,
@@ -69,8 +68,6 @@ export class AuthService {
         updatedAt: true,
       },
     });
-
-    return newUser;
   }
 
   static async registerKepalaPerawat(request) {

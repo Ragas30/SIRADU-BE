@@ -4,8 +4,10 @@ import { PasienController } from "../controller/pasien.controller.js";
 
 export const publicRoutes = express.Router();
 
-publicRoutes.post("/login", AuthController.login);
-publicRoutes.post("/register", AuthController.register);
+// DONE
+publicRoutes.post("/nurse/login", AuthController.nurseLogin);
+publicRoutes.post("/nurse/add", AuthController.nurseRegister);
+
 publicRoutes.get("/pasienCreate", PasienController.createPasien);
 publicRoutes.get("/pasiens", PasienController.getAllPasiens);
 publicRoutes.get("/pasien/:id", PasienController.getPasienById);
