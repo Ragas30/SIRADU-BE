@@ -1,6 +1,20 @@
 import { AuthService } from "../services/auth.service.js";
 
 export class AuthController {
+  static async headNurseLogin(req, res, next) {
+    try {
+      const request = req.body;
+      const result = await AuthService.headNurseLogin(request);
+      res.status(200).json({
+        success: true,
+        message: "Login successful",
+        data: result,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async nurseLogin(req, res, next) {
     try {
       const request = req.body;
@@ -8,7 +22,7 @@ export class AuthController {
       res.status(200).json({
         success: true,
         message: "Login successful",
-        result,
+        data: result,
       });
     } catch (error) {
       next(error);

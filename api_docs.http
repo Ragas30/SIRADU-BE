@@ -1,6 +1,15 @@
 ### Test Ping
 GET http://localhost:3000/api
 
+### Login Head Nurse
+POST http://localhost:3000/api/dashboard/login
+Content-Type: application/json
+
+{
+  "email": "kepala_perawat@mdjamil.com",
+  "password": "kepala_perawat_picu"
+}
+
 ### Login Nurse
 POST http://localhost:3000/api/nurse/login
 Content-Type: application/json

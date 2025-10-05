@@ -17,7 +17,6 @@ model User {
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
   reposisiHistory     ReposisiHistory[]
-  ruanganYangDipegang Ruangan[]         @relation("PerawatRuangan")
 }
 
 enum Role {
@@ -34,7 +33,6 @@ model Pasien {
   gender       Gender
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
-  ruangan      Ruangan            @relation(fields: [idRuangan], references: [id])
   conditions   PatientCondition[]
   reposisi     ReposisiHistory[]
 }
@@ -74,12 +72,4 @@ model ReposisiHistory {
   foto          String?
   pasien        Pasien   @relation(fields: [pasienId], references: [id])
   perawat       User     @relation(fields: [perawatId], references: [id])
-}
-
-model Ruangan {
-  id          String   @id @default(cuid())
-  namaRuangan String
-  idPerawat   String
-  perawat     User     @relation("PerawatRuangan", fields: [idPerawat], references: [id])
-  pasien      Pasien[]
 }

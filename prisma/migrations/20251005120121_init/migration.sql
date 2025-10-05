@@ -62,23 +62,11 @@ CREATE TABLE "public"."ReposisiHistory" (
     CONSTRAINT "ReposisiHistory_pkey" PRIMARY KEY ("id")
 );
 
--- CreateTable
-CREATE TABLE "public"."Ruangan" (
-    "id" TEXT NOT NULL,
-    "namaRuangan" TEXT NOT NULL,
-    "idPerawat" TEXT NOT NULL,
-
-    CONSTRAINT "Ruangan_pkey" PRIMARY KEY ("id")
-);
-
 -- CreateIndex
 CREATE UNIQUE INDEX "User_email_key" ON "public"."User"("email");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Pasien_nik_key" ON "public"."Pasien"("nik");
-
--- AddForeignKey
-ALTER TABLE "public"."Pasien" ADD CONSTRAINT "Pasien_idRuangan_fkey" FOREIGN KEY ("idRuangan") REFERENCES "public"."Ruangan"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "public"."PatientCondition" ADD CONSTRAINT "PatientCondition_pasienId_fkey" FOREIGN KEY ("pasienId") REFERENCES "public"."Pasien"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
@@ -88,6 +76,3 @@ ALTER TABLE "public"."ReposisiHistory" ADD CONSTRAINT "ReposisiHistory_pasienId_
 
 -- AddForeignKey
 ALTER TABLE "public"."ReposisiHistory" ADD CONSTRAINT "ReposisiHistory_perawatId_fkey" FOREIGN KEY ("perawatId") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "public"."Ruangan" ADD CONSTRAINT "Ruangan_idPerawat_fkey" FOREIGN KEY ("idPerawat") REFERENCES "public"."User"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
