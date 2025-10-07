@@ -1,3 +1,5 @@
+import { PasienService } from "../services/pasien.service.js";
+
 export class PasienController {
   static async createPasien(req, res, next) {
     try {

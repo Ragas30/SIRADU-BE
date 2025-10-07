@@ -7,42 +7,45 @@ export class PasienService {
   static async createPasien(request) {
     const pasienRequest = Validation.validate(PasienValidation.CREATE, request);
 
-    const pasien = await prismaClient.pasien.findUnique({
+    const existing = await prismaClient.patient.findUnique({
       where: { nik: pasienRequest.nik },
     });
 
-    if (pasien) {
-      throw new ResponseError(400, "Pasien Dengan NIK ini sudah ada");
+    if (existing) {
+      throw new ResponseError(400, "Pasien dengan NIK ini sudah ada");
     }
-    const newPasien = await prismaClient.pasien.create({
+
+    const newPasien = await prismaClient.patient.create({
       data: pasienRequest,
     });
+
     return newPasien;
   }
 
   static async getAllPasiens() {
-    const pasiens = await prismaClient.pasien.findMany();
-    return pasiens;
+    return prismaClient.patient.findMany();
   }
+
   static async getPasienById(id) {
-    const pasien = await prismaClient.pasien.findUnique({
+    const pasien = await prismaClient.patient.findUnique({
       where: { id },
     });
+
+    if (!pasien) throw new ResponseError(404, "Pasien tidak ditemukan");
     return pasien;
   }
 
   static async updatePasien(id, request) {
-    const pasienRequest = Validation.validate(PasienValidation.UPDATE, request);
-    const pasien = await prismaClient.pasien.findUnique({
-      where: { id },
-    });
-    if (!pasien) {
-      throw new ResponseError(404, "Pasien Tidak Ditemukan");
-    }
-    const updatedPasien = await prismaClient.pasien.update({
+    const pasienRequest = Validation.validate(PasienValidation.UPDATE_BY_ID, request);
+
+    const existing = await prismaClient.patient.findUnique({ where: { id } });
+    if (!existing) throw new ResponseError(404, "Pasien tidak ditemukan");
+
+    const updated = await prismaClient.patient.update({
       where: { id },
       data: pasienRequest,
     });
-    return updatedPasien;
+
+    return updated;
   }
 }

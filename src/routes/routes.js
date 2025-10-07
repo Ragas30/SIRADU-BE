@@ -9,7 +9,7 @@ publicRoutes.post("/dashboard/login", AuthController.headNurseLogin);
 publicRoutes.post("/nurse/login", AuthController.nurseLogin);
 publicRoutes.post("/nurse/add", AuthController.nurseRegister);
 
-publicRoutes.get("/pasienCreate", PasienController.createPasien);
+publicRoutes.post("/pasienCreate", PasienController.createPasien);
 publicRoutes.get("/pasiens", PasienController.getAllPasiens);
 publicRoutes.get("/pasien/:id", PasienController.getPasienById);
 publicRoutes.put("/pasien/:id", PasienController.updatePasien);
