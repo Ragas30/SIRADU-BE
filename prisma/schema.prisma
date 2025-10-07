@@ -16,7 +16,13 @@ model User {
   password            String
   createdAt           DateTime          @default(now())
   updatedAt           DateTime          @updatedAt
+  onShift             NurseStatus
   reposisiHistory     ReposisiHistory[]
+}
+
+enum NurseStatus {
+  ON_SHIFT
+  OFF_SHIFT
 }
 
 enum Role {
@@ -24,13 +30,14 @@ enum Role {
   PERAWAT
 }
 
-model Pasien {
+model Patient {
   id           String             @id @default(cuid())
   name         String
   nik          String             @unique
-  tanggalLahir DateTime
-  idRuangan    String
+  birthDate    DateTime
+  bedCode      String
   gender       Gender
+  status       Status
   createdAt    DateTime           @default(now())
   updatedAt    DateTime           @updatedAt
   conditions   PatientCondition[]
@@ -42,17 +49,22 @@ enum Gender {
   PEREMPUAN
 }
 
+enum Status {
+  ACTIVE
+  NON_ACTIVE
+}
+
 model PatientCondition {
-  id              String   @id @default(cuid())
-  persepsiSensori String
-  kelembapan      String
-  aktivitas       String
-  mobilisasi      String
-  resiko          Resiko
-  pasienId        String
-  pasien          Pasien   @relation(fields: [pasienId], references: [id])
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
+  id                String    @id @default(cuid())
+  perceptionSensory String
+  humidity          String
+  activity          String
+  mobilistaion      String
+  risk              Resiko
+  pasienId          String
+  pasien            Patient   @relation(fields: [pasienId], references: [id])
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
 }
 
 enum Resiko {
@@ -63,13 +75,13 @@ enum Resiko {
 }
 
 model ReposisiHistory {
-  id            String   @id @default(cuid())
-  pasienId      String
-  posisi        String
-  perawatId     String
+  id            String    @id @default(cuid())
+  patientId     String
+  position      String
+  nurseId       String
   skinCondition String
-  timestamp     DateTime @default(now())
+  timestamp     DateTime  @default(now())
   foto          String?
-  pasien        Pasien   @relation(fields: [pasienId], references: [id])
-  perawat       User     @relation(fields: [perawatId], references: [id])
+  patient       Patient   @relation(fields: [patientId], references: [id])
+  nurse         User      @relation(fields: [nurseId], references: [id])
 }

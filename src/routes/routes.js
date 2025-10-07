@@ -6,7 +6,6 @@ export const publicRoutes = express.Router();
 
 // DONE
 publicRoutes.post("/dashboard/login", AuthController.headNurseLogin);
-
 publicRoutes.post("/nurse/login", AuthController.nurseLogin);
 publicRoutes.post("/nurse/add", AuthController.nurseRegister);
 
