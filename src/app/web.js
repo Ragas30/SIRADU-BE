@@ -17,5 +17,12 @@ web.get("/docs.json", (_req, res) => res.json(swaggerDoc));
 // ===== Routes utama =====
 web.use("/api", publicRoutes);
 
+web.get("/api/test", (_req, res) => {
+  res.json({
+    success: true,
+    message: "Welcome to SIRADU API",
+  });
+});
+
 // ===== Error handler =====
 web.use(ErrorMiddleware);

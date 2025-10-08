@@ -50,36 +50,31 @@ Authorization: Bearer {{login.response.body.data.token}}
 
 ### Get All Patients
 GET http://localhost:3000/api/pasiens
-Authorization: Bearer
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
 
 ### Get Patient by ID
-GET http://localhost:3000/api/pasien/{id}
+GET http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
 Content-Type: application/json
-Authorization: Bearer <token>
+Authorization: Bearer {{login.response.body.data.token}}
 
-{
-  "id": "1"
-}
 
 ### Update Patient by ID
-PUT http://localhost:3000/api/pasien/{id}
+PUT http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
 Content-Type: application/json
-Authorization: Bearer <token>
+Authorization: Bearer {{login.response.body.data.token}}
 
 {
-  "name": "Jane Foster",
-  "nik": "1307123010020005",
-  "birthDate": "1990-01-02",
+  "name": "Jane Doe",
+  "nik": "1307123010020001",
+  "birthDate": "1990-01-01",
   "bedNumber": 1,
   "gender": "PEREMPUAN",
   "bradenQ": 12,
-  "status": "ACTIVE"
+  "status": "NON_ACTIVE"
 }
 
 ### Delete Patient by ID
-DELETE http://localhost:3000/api/pasien/{id}
-Authorization: Bearer <token>
-
-{
-  "id": "1"
-}
+DELETE http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}

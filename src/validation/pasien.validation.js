@@ -36,4 +36,8 @@ export class PasienValidation {
     .refine((data) => Object.values(data).some((v) => v !== undefined), {
       message: "Minimal satu field harus diubah",
     });
+
+  static GET_BY_ID = z.object({ id: idSchema });
+
+  static DELETE_BY_ID = z.object({ id: idSchema });
 }

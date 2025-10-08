@@ -27,7 +27,7 @@ export class PasienService {
   }
 
   static async getPasienById(id) {
-    const pasien = await prismaClient.patient.findUnique({
+    const pasien = await prismaClient.patient.findFirst({
       where: { id },
     });
 
@@ -47,5 +47,12 @@ export class PasienService {
     });
 
     return updated;
+  }
+
+  static async deletePasien(id) {
+    const existing = await prismaClient.patient.findUnique({ where: { id } });
+    if (!existing) throw new ResponseError(404, "Pasien tidak ditemukan");
+
+    await prismaClient.patient.delete({ where: { id } });
   }
 }
