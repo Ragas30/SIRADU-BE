@@ -1,9 +1,12 @@
 ### Test Ping
 GET http://localhost:3000/api
 
+
 ### Login Head Nurse
+# @name login
 POST http://localhost:3000/api/dashboard/login
 Content-Type: application/json
+Accept: application/json
 
 {
   "email": "kepala_perawat@mdjamil.com",
@@ -32,13 +35,51 @@ Content-Type: application/json
 ### Register Patient
 POST http://localhost:3000/api/pasienCreate
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
 
 {
-  "name": "Jane Doe",
-  "nik": "1307123010020001",
-  "birthDate": "1990-01-01",
+  "name": "Ghazy",
+  "nik": "1307011204002001",
+  "birthDate": "1990-01-02",
+  "bedNumber": 1,
+  "gender": "LAKI_LAKI",
+  "bradenQ": 12,
+  "status": "ACTIVE"
+}
+
+
+### Get All Patients
+GET http://localhost:3000/api/pasiens
+Authorization: Bearer
+
+### Get Patient by ID
+GET http://localhost:3000/api/pasien/{id}
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "id": "1"
+}
+
+### Update Patient by ID
+PUT http://localhost:3000/api/pasien/{id}
+Content-Type: application/json
+Authorization: Bearer <token>
+
+{
+  "name": "Jane Foster",
+  "nik": "1307123010020005",
+  "birthDate": "1990-01-02",
   "bedNumber": 1,
   "gender": "PEREMPUAN",
   "bradenQ": 12,
   "status": "ACTIVE"
+}
+
+### Delete Patient by ID
+DELETE http://localhost:3000/api/pasien/{id}
+Authorization: Bearer <token>
+
+{
+  "id": "1"
 }

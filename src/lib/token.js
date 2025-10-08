@@ -1,8 +1,8 @@
-import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 
-dotenv.config();
-
 export const generateToken = (user) => {
-    return jwt.sign({id: user.id}, process.env.JWT_SECRET, { expiresIn: '30d'});
-}
+  const secret = process.env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET tidak ditemukan di environment");
+
+  return jwt.sign({ id: user.id }, secret, { expiresIn: "30d" });
+};

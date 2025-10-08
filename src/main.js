@@ -1,15 +1,13 @@
+import "dotenv/config";
 import { web } from "./app/web.js";
-import "dotenv/config";
 
-import "dotenv/config";
 console.log("DATABASE_URL at runtime:", process.env.DATABASE_URL);
+console.log("JWT_SECRET at runtime:", process.env.JWT_SECRET);
 
-web.listen(3000, () => {
-  console.log("listening on port 3000");
-});
+const PORT = process.env.PORT || 3000;
 
-const PORT = process.env.PORT ?? 3000;
 web.listen(PORT, () => {
-  console.log(`API    : http://localhost:${PORT}/api`);
-  console.log(`Docs   : http://localhost:${PORT}/docs`);
+  console.log(`✅ Server running on port ${PORT}`);
+  console.log(`API   : http://localhost:${PORT}/api`);
+  console.log(`Docs  : http://localhost:${PORT}/docs`);
 });
