@@ -87,7 +87,7 @@ model ReposisiHistory {
   position  String
   nurseId   String
   bradenQ   Int
-  timestamp DateTime @default(now())
+  Time      DateTime @default(now())
   foto      String?
   patient   Patient  @relation(fields: [patientId], references: [id])
   nurse     User     @relation(fields: [nurseId], references: [id])

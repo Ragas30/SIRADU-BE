@@ -78,3 +78,18 @@ Authorization: Bearer {{login.response.body.data.token}}
 DELETE http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
+
+### Register Reposisi
+POST http://localhost:3000/api/reposisiCreate
+Content-Type: application/json
+
+{
+  "id": "reposisi-1",
+  "name": "Reposisi 1",
+  "description": "Deskripsi Reposisi 1"
+}
+
+### Get All Reposisis
+GET http://localhost:3000/api/reposisis
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
