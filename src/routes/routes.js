@@ -3,6 +3,7 @@ import { AuthController } from "../controller/auth.controller.js";
 import { PasienController } from "../controller/pasien.controller.js";
 import { ReposisiHistoryController } from "../controller/reposisiHistory.controller.js";
 import { authMiddleware } from "../middleware/auth.middleware.js";
+import { patientHandleController } from "../controller/patientHandle.controller.js";
 
 export const publicRoutes = express.Router();
 
@@ -17,9 +18,9 @@ publicRoutes.get("/pasiens", authMiddleware, PasienController.getAllPasiens);
 publicRoutes.get("/pasien/:id", authMiddleware, PasienController.getPasienById);
 publicRoutes.put("/pasien/:id", authMiddleware, PasienController.updatePasien);
 publicRoutes.delete("/pasien/:id", authMiddleware, PasienController.deletePasien);
-publicRoutes.post("/patient-handle", authMiddleware, PatientHandleController.createPatientHandle);
-publicRoutes.get("/patient-handles", authMiddleware, PatientHandleController.getAllPatientHandles);
-publicRoutes.get("/patient-handle/:id", authMiddleware, PatientHandleController.getPatientHandleById);
+publicRoutes.post("/patient-handle", authMiddleware, patientHandleController.createPatientHandle);
+publicRoutes.get("/patient-handles", authMiddleware, patientHandleController.getAllPatientHandles);
+publicRoutes.get("/patient-handle/:id", authMiddleware, patientHandleController.getPatientHandleById);
 
 // reposisi history routes
 publicRoutes.post("/reposisiCreate", authMiddleware, ReposisiHistoryController.createReposisi);
