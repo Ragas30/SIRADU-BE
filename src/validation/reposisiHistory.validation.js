@@ -8,13 +8,12 @@ const nurseId = z.string().cuid({ message: "ID perawat harus berupa CUID yang va
 const bradenQ = z.number().min(1).max(23, { message: "Skor Braden Q harus antara 1–23" });
 const photo = z.string().url({ message: "Foto harus berupa URL yang valid" }).optional();
 
-export class ReposisiValidation {
-    static CREATE = z.object({
-        id: patientId,
-        position: position,
-        nurseId: nurseId,
-        bradenQ: bradenQ,
-        photo: photo,
-    });
-
+export class ReposisiHistoryValidation {
+  static CREATE = z.object({
+    id: patientId,
+    position: position,
+    nurseId: nurseId,
+    bradenQ: bradenQ,
+    photo: photo,
+  });
 }

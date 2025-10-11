@@ -19,6 +19,7 @@ model User {
   reposisiHistory ReposisiHistory[]
   nurseDetail     NurseDetail[]
   DailyActivity   DailyActivity[]
+  PatientHandle   PatientHandle[]
 }
 
 model NurseDetail {
@@ -51,17 +52,18 @@ enum Role {
 }
 
 model Patient {
-  id        String            @id @default(cuid())
-  name      String
-  nik       String            @unique
-  birthDate DateTime
-  bedNumber Int
-  gender    Gender
-  bradenQ   Int
-  status    Status
-  createdAt DateTime          @default(now())
-  updatedAt DateTime          @updatedAt
-  reposisi  ReposisiHistory[]
+  id            String            @id @default(cuid())
+  name          String
+  nik           String            @unique
+  birthDate     DateTime
+  bedNumber     Int
+  gender        Gender
+  bradenQ       Int
+  status        Status
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+  reposisi      ReposisiHistory[]
+  PatientHandle PatientHandle[]
 }
 
 enum Gender {
@@ -91,4 +93,19 @@ model ReposisiHistory {
   foto      String?
   patient   Patient  @relation(fields: [patientId], references: [id])
   nurse     User     @relation(fields: [nurseId], references: [id])
+}
+
+model PatientHandle {
+  id        String   @id @default(cuid())
+  patientId String
+  nurseId   String
+  patient   Patient  @relation(fields: [patientId], references: [id])
+  nurse     User     @relation(fields: [nurseId], references: [id])
+  bradenQ   Int
+  foto      String?
+  status    Status   @default(ACTIVE)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([patientId, nurseId])
 }

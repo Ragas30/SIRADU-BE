@@ -1,4 +1,4 @@
-export class ReposisiController {
+export class ReposisiHistoryController {
   static async createReposisi(req, res, next) {
     try {
       const request = req.body;

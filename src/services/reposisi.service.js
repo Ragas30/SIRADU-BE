@@ -1,9 +1,9 @@
 import { prismaClient } from "../app/database.js";
 import { ResponseError } from "../lib/error.response.js";
-import { ReposisiValidation } from "../validation/reposisi.validation.js";
+import { ReposisiValidation } from "../validation/reposisiHistory.validation.js";
 import { Validation } from "../validation/validation.js";
 
-export class ReposisiService {
+export class ReposisiHistoryService {
     static async createReposisi(request) {
         const reposisiRequest = Validation.validate(ReposisiValidation.CREATE, request);
 
