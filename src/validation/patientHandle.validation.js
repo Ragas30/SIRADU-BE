@@ -1,3 +1,5 @@
+import z from "zod";
+
 const id = z.string().cuid({ message: "ID harus berupa CUID yang valid" });
 const patientId = z.string().min(1, { message: "Nama pasien tidak boleh kosong" });
 const nurseId = z.string().min(1, { message: "Nama perawat tidak boleh kosong" });
@@ -6,21 +8,21 @@ const foto = z.string().url({ message: "Foto harus berupa URL yang valid" }).opt
 const status = z.enum(["ACTIVE", "NON_ACTIVE"], { invalid_type_error: "Status tidak valid" });
 
 export class patientHandleValidation {
-   static CREATE = z.object({
-      id: id,
-      patientId: patientId,
-      nurseId: nurseId,
-      bradenQ: bradenQ,
-      foto: foto,
-      status: status,
-   });
+  static CREATE = z.object({
+    id: id,
+    patientId: patientId,
+    nurseId: nurseId,
+    bradenQ: bradenQ,
+    foto: foto,
+    status: status,
+  });
 
-   static UPDATE = z.object({
-      id: id,
-      patientId: patientId.optional(),
-      nurseId: nurseId.optional(),
-      bradenQ: bradenQ.optional(),
-      foto: foto.optional(),
-      status: status.optional(),
-   });
-};
+  static UPDATE = z.object({
+    id: id,
+    patientId: patientId.optional(),
+    nurseId: nurseId.optional(),
+    bradenQ: bradenQ.optional(),
+    foto: foto.optional(),
+    status: status.optional(),
+  });
+}

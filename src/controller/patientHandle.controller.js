@@ -1,4 +1,4 @@
-import { PatientHandleService } from "../services/patientHandle.service";
+import { PatientHandleService } from "../services/patientHandle.service.js";
 
 export class patientHandleController {
     static async createPatientHandle(req, res, next) {
