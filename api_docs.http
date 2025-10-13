@@ -14,6 +14,7 @@ Accept: application/json
 }
 
 ### Login Nurse
+# @name login
 POST http://localhost:3000/api/nurse/login
 Content-Type: application/json
 
@@ -85,7 +86,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
 
 {
-  "patientId": "cmgg9ni7v0000648ozw9ujqag",
+  "patientId": "cmghlw4z4000064fcm954n0oh",
   "bradenQ": 12,
   "foto": "http://example.com/foto.jpg",
   "status": "ACTIVE"

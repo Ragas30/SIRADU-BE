@@ -1,9 +1,10 @@
 import { prismaClient } from "../app/database.js";
-import { Prisma } from "@prisma/client";
 
 export class PatientHandleService {
   static async createPatientHandle(input) {
     const { patientId: pid, patientName, bradenQ, foto, status, nurseIdFromAuth } = input;
+
+    console.log("prismaClient keys:", Object.keys(prismaClient));
 
     // 0) Guard: nurseId wajib dari auth
     if (!nurseIdFromAuth) {
@@ -63,7 +64,6 @@ export class PatientHandleService {
             bradenQ,
             foto: foto ?? null,
             position: "HANDLE_CREATED",
-            // Time otomatis default(now())
           },
         });
 
