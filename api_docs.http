@@ -54,7 +54,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
 
 ### Get Patient by ID
-GET http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
+GET http://localhost:3000/api/pasien/cmgg9ukrj0001648o7kqh3s74
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
 
@@ -79,17 +79,24 @@ DELETE http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
 
-### Register Reposisi
-POST http://localhost:3000/api/reposisiCreate
+### Create Patient Handle and History
+POST http://localhost:3000/api/patient-handle
 Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
 
 {
-  "id": "reposisi-1",
-  "name": "Reposisi 1",
-  "description": "Deskripsi Reposisi 1"
+  "patientId": "cmgg9ni7v0000648ozw9ujqag",
+  "bradenQ": 12,
+  "foto": "http://example.com/foto.jpg",
+  "status": "ACTIVE"
 }
 
-### Get All Reposisis
-GET http://localhost:3000/api/reposisis
+### Get All Patient Handles
+GET http://localhost:3000/api/patient-handles
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+### Get Patient Handle by ID
+GET http://localhost:3000/api/patient-handle/cmgg9ni7v0000648ozw9ujqag
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}

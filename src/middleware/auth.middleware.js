@@ -20,3 +20,19 @@ export function authMiddleware(req, res, next) {
     next(new ResponseError(401, "Token tidak valid"));
   }
 }
+
+export function requireAuth(req, res, next) {
+  if (!req.user?.id) return next(new ResponseError(401, "Unauthorized"));
+  next();
+}
+
+export function requireRole(...allowed) {
+  return (req, res, next) => {
+    const role = req.user?.role;
+    if (!role) return next(new ResponseError(401, "Unauthorized"));
+    if (!allowed.includes(role)) {
+      return next(new ResponseError(403, "Forbidden"));
+    }
+    next();
+  };
+}

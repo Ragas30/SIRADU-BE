@@ -23,6 +23,7 @@ export class PasienService {
   }
 
   static async getAllPasiens() {
+    
     return prismaClient.patient.findMany();
   }
 
