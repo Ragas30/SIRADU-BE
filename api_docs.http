@@ -98,6 +98,31 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
 
 ### Get Patient Handle by ID
-GET http://localhost:3000/api/patient-handle/cmgg9ni7v0000648ozw9ujqag
+GET http://localhost:3000/api/patient-handle/cmgovaeta000164hwqfixp2uk
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.token}}
+
+### Get Patient History 
+GET http://localhost:3000/api/patient-histories
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+### Get Patient History by Patient ID
+GET http://localhost:3000/api/patient-histories/by-patient/cmghlw4z4000064fcm954n0oh
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+### Get Nurse History
+GET http://localhost:3000/api/nurse-histories
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+### Get Nurse History By nurse Id
+GET http://localhost:3000/api/nurse-histories/by-nurse/cmghmjire0000644c3bstfy83
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.token}}
+
+
+
+
+

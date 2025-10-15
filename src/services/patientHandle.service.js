@@ -1,4 +1,6 @@
+import { tr } from "zod/locales";
 import { prismaClient } from "../app/database.js";
+import { includes } from "zod";
 
 export class PatientHandleService {
   static async createPatientHandle(input) {
@@ -83,10 +85,10 @@ export class PatientHandleService {
   }
 
   static async getAllPatientHandles() {
-    return prismaClient.patientHandle.findMany({ include: { patient: true, nurse: true } });
+    return prismaClient.patientHandle.findMany({ include: { nurse: { select: { name: true } }, patient: { select: { name: true } } } });
   }
 
   static async getPatientHandleById(id) {
-    return prismaClient.patientHandle.findUnique({ where: { id }, include: { patient: true, nurse: true } });
+    return prismaClient.patientHandle.findUnique({ where: { id }, include: { nurse: { select: { name: true } }, patient: { select: { name: true } } } });
   }
 }
