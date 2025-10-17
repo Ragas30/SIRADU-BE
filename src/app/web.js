@@ -1,4 +1,3 @@
-// src/app/web.js
 import express from "express";
 import swaggerUi from "swagger-ui-express";
 // import swaggerDoc from "../../assets/swagger.json" assert { type: "json" }; // <-- perhatikan path
