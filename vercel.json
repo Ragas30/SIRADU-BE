@@ -1,13 +1,9 @@
 {
-  "version": 2,
-  "builds": [{ "src": "api/**/*.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/(.*)", "dest": "api/index.js" }],
+  "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/**/*.js": {
-      "includeFiles": "generated/prisma/**"
-    },
     "app/**/route.js": {
-      "includeFiles": "generated/prisma/**"
+      "maxDuration": 30,
+      "includeFiles": ["node_modules/.prisma/client/**", "prisma/**"]
     }
   }
 }
