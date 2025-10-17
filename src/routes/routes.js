@@ -6,8 +6,12 @@ import { authMiddleware, requireRole } from "../middleware/auth.middleware.js";
 import { patientHandleController } from "../controller/patientHandle.controller.js";
 import { PatientHistoryController } from "../controller/patientHistory.controller.js";
 import { NurseHistoryController } from "../controller/nurseHistory.controller.js";
+import { TestController } from "../controller/test.controller.js";
 
 export const publicRoutes = express.Router();
+
+// DONE
+publicRoutes.get("/test", TestController.test);
 
 // DONE
 publicRoutes.post("/dashboard/login", AuthController.headNurseLogin);
