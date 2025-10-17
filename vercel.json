@@ -1,5 +1,13 @@
 {
   "version": 2,
   "builds": [{ "src": "api/**/*.js", "use": "@vercel/node" }],
-  "routes": [{ "src": "/(.*)", "dest": "api/index.js" }]
+  "routes": [{ "src": "/(.*)", "dest": "api/index.js" }],
+  "functions": {
+    "api/**/*.js": {
+      "includeFiles": "generated/prisma/**"
+    },
+    "app/**/route.js": {
+      "includeFiles": "generated/prisma/**"
+    }
+  }
 }

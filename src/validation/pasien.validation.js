@@ -1,6 +1,6 @@
+import { Prisma } from "@prisma/client";
 import { z } from "zod";
-import prismaPkg from "../../generated/prisma/index.js";
-const { Gender } = prismaPkg;
+const { Gender } = Prisma;
 
 const idSchema = z.string().cuid({ message: "ID harus berupa CUID yang valid" });
 const nikSchema = z.string().length(16, { message: "NIK harus 16 digit" });

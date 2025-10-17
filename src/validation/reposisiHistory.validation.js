@@ -1,5 +1,4 @@
 import z from "zod";
-import prismaPkg from "../../generated/prisma/index.js";
 
 const id = z.string().cuid({ message: "ID harus berupa CUID yang valid" });
 const patientId = z.string().cuid({ message: "ID pasien harus berupa CUID yang valid" });

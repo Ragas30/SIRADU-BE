@@ -7,7 +7,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build:swagger": "node src/lib/swagger.cjs",
     "dev": "nodemon src/main.js",
-    "seed": "prisma db seed"
+    "seed": "prisma db seed",
+    "postinstall": "prisma generate",
+    "build": "prisma generate && prisma migrate deploy && next build"
   },
   "prisma": {
     "seed": "node prisma/seed.js"
