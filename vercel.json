@@ -1,9 +1,5 @@
 {
-  "$schema": "https://openapi.vercel.sh/vercel.json",
-  "functions": {
-    "app/**/route.js": {
-      "maxDuration": 30,
-      "includeFiles": ["node_modules/.prisma/client/**", "prisma/**"]
-    }
-  }
+  "version": 2,
+  "builds": [{ "src": "api/**/*.js", "use": "@vercel/node" }],
+  "routes": [{ "src": "/(.*)", "dest": "api/index.js" }]
 }
