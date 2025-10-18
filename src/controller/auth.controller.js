@@ -1,3 +1,7 @@
+import {
+  generateAccessToken,
+  generateAndStoreRefreshToken,
+} from "../lib/token.js";
 import { AuthService } from "../services/auth.service.js";
 
 function setRefreshCookie(res, token) {
@@ -24,7 +28,12 @@ export class AuthController {
         message: "Login successful",
         data: {
           accessToken,
-          user: { id: user.id, name: user.name, email: user.email, role: user.role },
+          user: {
+            id: user.user.id,
+            name: user.user.name,
+            email: user.user.email,
+            role: user.user.role,
+          },
         },
       });
     } catch (error) {
@@ -45,7 +54,12 @@ export class AuthController {
         message: "Login successful",
         data: {
           accessToken,
-          user: { id: user.id, name: user.name, email: user.email, role: user.role },
+          user: {
+            id: user.id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
         },
       });
     } catch (error) {
@@ -90,7 +104,9 @@ export class AuthController {
 
       const decoded = verifyAccessToken(token); // throw jika invalid/expired
       if (!shouldSlideRenew(decoded)) {
-        return res.status(200).json({ success: true, accessToken: token, slid: false });
+        return res
+          .status(200)
+          .json({ success: true, accessToken: token, slid: false });
       }
 
       const user = await prismaClient.user.findUnique({
@@ -99,7 +115,9 @@ export class AuthController {
       });
       const newAccess = generateAccessToken(user);
 
-      res.status(200).json({ success: true, accessToken: newAccess, slid: true });
+      res
+        .status(200)
+        .json({ success: true, accessToken: newAccess, slid: true });
     } catch (err) {
       next(err);
     }
