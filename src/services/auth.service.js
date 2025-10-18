@@ -4,7 +4,7 @@ import { ResponseError } from "../lib/error.response.js";
 import { Validation } from "../validation/validation.js";
 import { AuthValidation } from "../validation/auth.validation.js";
 import { AuthPerawatValidation } from "../validation/auth.validation.js";
-import {generateToken} from "../lib/token.js";
+import { generateAccessToken } from "../lib/token.js";
 
 const sanitizeUser = (user) => {
   if (!user) return user;
@@ -35,9 +35,9 @@ export class AuthService {
 
     if (!ok) throw new ResponseError(400, "Invalid password");
 
-    if(user.role !== "KEPALA_PERAWAT") throw new ResponseError(403, "Access denied");
+    if (user.role !== "KEPALA_PERAWAT") throw new ResponseError(403, "Access denied");
 
-    const token = generateToken(user);
+    const token = generateAccessToken(user);
 
     return {
       user: sanitizeUser(user),
@@ -67,9 +67,9 @@ export class AuthService {
 
     if (!ok) throw new ResponseError(400, "Invalid password");
 
-    if(user.role !== "PERAWAT") throw new ResponseError(403, "Access denied");
+    if (user.role !== "PERAWAT") throw new ResponseError(403, "Access denied");
 
-    const token = generateToken(user);
+    const token = generateAccessToken(user);
 
     return {
       user: sanitizeUser(user),

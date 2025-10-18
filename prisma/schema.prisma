@@ -21,6 +21,7 @@ model User {
   nurseDetail     NurseDetail[]
   DailyActivity   DailyActivity[]
   PatientHandle   PatientHandle[]
+  RefreshToken    RefreshToken[]
 }
 
 model NurseDetail {
@@ -109,4 +110,16 @@ model PatientHandle {
   updatedAt DateTime @updatedAt
 
   @@unique([patientId, nurseId])
+}
+
+model RefreshToken {
+  id        String    @id @default(cuid())
+  userId    String
+  token     String    @unique
+  createdAt DateTime  @default(now())
+  expiresAt DateTime
+  revokedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }

@@ -10,6 +10,9 @@ import { TestController } from "../controller/test.controller.js";
 
 export const publicRoutes = express.Router();
 
+publicRoutes.post("/auth/refresh", AuthController.refresh);
+publicRoutes.post("/auth/renew", AuthController.renew);
+
 // DONE
 publicRoutes.get("/test", TestController.test);
 
