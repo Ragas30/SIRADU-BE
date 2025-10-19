@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 import { z } from "zod";
 const { Gender } = Prisma;
 
-const GENDER_VALUES = ["MALE", "FEMALE"];
+const GENDER_VALUES = ["LAKI_LAKI", "PEREMPUAN"];
 
 const idSchema = z.string().cuid({ message: "ID harus berupa CUID yang valid" });
 const nikSchema = z.string().length(16, { message: "NIK harus 16 digit" });
