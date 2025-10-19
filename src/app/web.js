@@ -16,12 +16,9 @@ const ORIGINS = [
 
 const corsOptions = {
   origin(origin, callback) {
-    // non-browser client (Postman) biasanya tanpa Origin
     if (!origin) return callback(null, true);
     const allowed = ORIGINS.includes(origin);
-    return allowed
-      ? callback(null, true)
-      : callback(new Error(`Not allowed by CORS ${origin}`));
+    return allowed ? callback(null, true) : callback(new Error(`Not allowed by CORS ${origin}`));
   },
   credentials: true,
   methods: ["GET", "HEAD", "PUT", "PATCH", "POST", "DELETE", "OPTIONS"],
@@ -32,7 +29,6 @@ const corsOptions = {
 
 web.use(cookieParser());
 web.use(cors(corsOptions));
-
 
 web.use(express.json());
 web.use(express.urlencoded({ extended: false }));

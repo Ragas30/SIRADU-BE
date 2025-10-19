@@ -80,21 +80,30 @@ export class AuthService {
   static async nurseRegister(request) {
     const registerRequest = Validation.validate(AuthPerawatValidation.REGISTER, request);
 
-    const existing = await prismaClient.user.findUnique({
-      where: { email: registerRequest.email },
+    // Normalisasi
+    const name = String(registerRequest.name || "").trim();
+    const email = String(registerRequest.email || "")
+      .trim()
+      .toLowerCase();
+    const password = String(registerRequest.password || "");
+
+    // Cek email sudah terpakai (case-insensitive)
+    const existing = await prismaClient.user.findFirst({
+      where: { email: { equals: email, mode: "insensitive" } },
       select: { id: true },
     });
+    if (existing) throw new ResponseError(400, "User dengan email ini sudah terdaftar");
 
-    if (existing) throw new ResponseError(400, "User already exists");
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const hashedPassword = await bcrypt.hash(registerRequest.password, 10);
-
-    return await prismaClient.user.create({
+    // Create user
+    const user = await prismaClient.user.create({
       data: {
-        name: registerRequest.name,
-        email: registerRequest.email,
+        name,
+        email,
         password: hashedPassword,
-        role: "PERAWAT",
+        role: "PERAWAT", // jika pakai enum Prisma pastikan cocok
       },
       select: {
         id: true,
@@ -105,5 +114,7 @@ export class AuthService {
         updatedAt: true,
       },
     });
+
+    return user;
   }
 }

@@ -1,11 +1,37 @@
 import { PatientHistoryService } from "../services/patientHistory.service.js";
 import { ResponseError } from "../lib/error.response.js";
 
+function toInt(v, fallback) {
+  const n = Number.parseInt(String(v), 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+
 export class PatientHistoryController {
+  // GET /patient-histories
   static async getAllPatientHistories(req, res, next) {
     try {
-      const data = await PatientHistoryService.getAllPatientHistories();
-      res.status(200).json(data);
+      const page = toInt(req.query.page, 1);
+      const pageSize = toInt(req.query.pageSize, 10);
+      const search = typeof req.query.search === "string" ? req.query.search : "";
+      const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "Time";
+      const sortOrder = typeof req.query.sortOrder === "string" && ["asc", "desc"].includes(req.query.sortOrder.toLowerCase()) ? req.query.sortOrder.toLowerCase() : "desc";
+      
+      const { data, total } = await PatientHistoryService.getAllPatientHistories({
+        page,
+        pageSize,
+        search,
+        sortBy,
+        sortOrder,
+      });
+
+      return res.status(200).json({
+        data,
+        total,
+        page,
+        pageSize,
+        success: true,
+        message: "Patient histories fetched successfully",
+      });
     } catch (error) {
       next(error);
     }
@@ -16,8 +42,30 @@ export class PatientHistoryController {
     try {
       const patientId = req.params.patientId || req.params.id;
       if (!patientId) throw new ResponseError(400, "Parameter patientId/id wajib diisi");
-      const data = await PatientHistoryService.getPatientHistoryByIdPatient(patientId);
-      res.status(200).json(data);
+
+      const page = toInt(req.query.page, 1);
+      const pageSize = toInt(req.query.pageSize, 10);
+      const search = typeof req.query.search === "string" ? req.query.search : "";
+      const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "Time";
+      const sortOrder = typeof req.query.sortOrder === "string" && ["asc", "desc"].includes(req.query.sortOrder.toLowerCase()) ? req.query.sortOrder.toLowerCase() : "desc";
+
+      const { data, total } = await PatientHistoryService.getPatientHistoryByIdPatient({
+        patientId,
+        page,
+        pageSize,
+        search,
+        sortBy,
+        sortOrder,
+      });
+
+      return res.status(200).json({
+        data,
+        total,
+        page,
+        pageSize,
+        success: true,
+        message: "Patient history fetched successfully",
+      });
     } catch (error) {
       next(error);
     }
@@ -28,8 +76,28 @@ export class PatientHistoryController {
     try {
       const name = req.params.name || req.query.name;
       if (!name) throw new ResponseError(400, "Parameter name wajib diisi");
-      const data = await PatientHistoryService.getPatientHistoryByPatientName(name);
-      res.status(200).json(data);
+
+      const page = toInt(req.query.page, 1);
+      const pageSize = toInt(req.query.pageSize, 10);
+      const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "Time";
+      const sortOrder = typeof req.query.sortOrder === "string" && ["asc", "desc"].includes(req.query.sortOrder.toLowerCase()) ? req.query.sortOrder.toLowerCase() : "desc";
+
+      const { data, total } = await PatientHistoryService.getPatientHistoryByPatientName({
+        name,
+        page,
+        pageSize,
+        sortBy,
+        sortOrder,
+      });
+
+      return res.status(200).json({
+        data,
+        total,
+        page,
+        pageSize,
+        success: true,
+        message: "Patient history fetched successfully",
+      });
     } catch (error) {
       next(error);
     }

@@ -56,7 +56,7 @@ export class PatientHandleService {
             foto: foto ?? null,
             status: status ?? "ACTIVE",
           },
-          include: { patient: true, nurse: true },
+          include: { patient: true, nurse: { select: { name: true, id: true, name: true } } },
         });
 
         const history = await tx.reposisiHistory.create({
@@ -65,7 +65,7 @@ export class PatientHandleService {
             nurseId,
             bradenQ,
             foto: foto ?? null,
-            position: "HANDLE_CREATED",
+            position: "",
           },
         });
 

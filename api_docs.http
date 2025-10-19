@@ -19,7 +19,7 @@ POST http://localhost:3000/api/nurse/login
 Content-Type: application/json
 
 {
-  "email": "john.nurse@mdjamil.com",
+  "email": "budi.nurse@mdjamil.com",
   "password": "perawat123"
 }
 
@@ -28,10 +28,15 @@ POST http://localhost:3000/api/nurse/add
 Content-Type: application/json
 
 {
-  "name": "John Doe",
-  "email": "john.doe@email.com",
-  "password": "12345678"
+  "name": "Rani",
+  "email": "RANI@example.com",
+  "password": "secret123"
 }
+
+### Get All Nurse
+GET http://localhost:3000/api/nurse
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Register Patient
 POST http://localhost:3000/api/pasienCreate
@@ -39,7 +44,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
-  "name": "Ghazy",
+  "name": "Abdul",
   "nik": "1307011204002001",
   "birthDate": "1990-01-02",
   "bedNumber": 1,
@@ -86,8 +91,8 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
-  "patientId": "cmgxfwpc6000064q0860inz4r",
-  "bradenQ": 12,
+  "patientId": "cmgt5heag000b64nw8xmhx5tg",
+  "bradenQ": 15,
   "foto": "http://example.com/foto.jpg",
   "status": "ACTIVE"
 }
@@ -118,7 +123,12 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Nurse History By nurse Id
-GET http://localhost:3000/api/nurse-histories/by-nurse/cmghmjire0000644c3bstfy83
+GET http://localhost:3000/api/nurse-history/cmgt5hea5000764nwow3vxjuj
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.accessToken}}
+
+### Get Nurse History Dropdown By Id
+GET http://localhost:3000/api/nurse-history/id-option?q=SitiAisyah
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
