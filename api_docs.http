@@ -19,8 +19,8 @@ POST http://localhost:3000/api/nurse/login
 Content-Type: application/json
 
 {
-  "email": "john.doe@email.com",
-  "password": "12345678"
+  "email": "john.nurse@mdjamil.com",
+  "password": "perawat123"
 }
 
 ### Register Nurse
@@ -36,7 +36,7 @@ Content-Type: application/json
 ### Register Patient
 POST http://localhost:3000/api/pasienCreate
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
   "name": "Ghazy",
@@ -52,18 +52,18 @@ Authorization: Bearer {{login.response.body.data.token}}
 ### Get All Patients
 GET http://localhost:3000/api/pasiens
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Patient by ID
 GET http://localhost:3000/api/pasien/cmgg9ukrj0001648o7kqh3s74
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 
 ### Update Patient by ID
 PUT http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
   "name": "Jane Doe",
@@ -78,12 +78,12 @@ Authorization: Bearer {{login.response.body.data.token}}
 ### Delete Patient by ID
 DELETE http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Create Patient Handle and History
 POST http://localhost:3000/api/patient-handle
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
   "patientId": "cmghlw4z4000064fcm954n0oh",
@@ -95,32 +95,32 @@ Authorization: Bearer {{login.response.body.data.token}}
 ### Get All Patient Handles
 GET http://localhost:3000/api/patient-handles
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Patient Handle by ID
 GET http://localhost:3000/api/patient-handle/cmgovaeta000164hwqfixp2uk
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Patient History 
 GET http://localhost:3000/api/patient-histories
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Patient History by Patient ID
 GET http://localhost:3000/api/patient-histories/by-patient/cmghlw4z4000064fcm954n0oh
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Nurse History
 GET http://localhost:3000/api/nurse-histories
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Nurse History By nurse Id
 GET http://localhost:3000/api/nurse-histories/by-nurse/cmghmjire0000644c3bstfy83
 Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.token}}
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
 
 
