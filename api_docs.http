@@ -55,28 +55,28 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Patient by ID
-GET http://localhost:3000/api/pasien/cmgg9ukrj0001648o7kqh3s74
+GET http://localhost:3000/api/pasien/cmgxfwpc6000064q0860inz4r
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 
 ### Update Patient by ID
-PUT http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
+PUT http://localhost:3000/api/pasien/cmgxfwpc6000064q0860inz4r
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
-  "name": "Jane Doe",
+  "name": "Ghazy",
   "nik": "1307123010020001",
-  "birthDate": "1990-01-01",
+  "birthDate": "1990-01-02",
   "bedNumber": 1,
-  "gender": "PEREMPUAN",
-  "bradenQ": 12,
+  "gender": "LAKI_LAKI",
+  "bradenQ": 10,
   "status": "NON_ACTIVE"
 }
 
 ### Delete Patient by ID
-DELETE http://localhost:3000/api/pasien/cmgg9ni7v0000648ozw9ujqag
+DELETE http://localhost:3000/api/pasien/cmgt5heai000c64nwk61rt212
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
@@ -86,7 +86,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
-  "patientId": "cmghlw4z4000064fcm954n0oh",
+  "patientId": "cmgxfwpc6000064q0860inz4r",
   "bradenQ": 12,
   "foto": "http://example.com/foto.jpg",
   "status": "ACTIVE"
@@ -98,7 +98,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Patient Handle by ID
-GET http://localhost:3000/api/patient-handle/cmgovaeta000164hwqfixp2uk
+GET http://localhost:3000/api/patient-handle/cmgxg3jt5000164ess9svo7b1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
@@ -108,7 +108,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Patient History by Patient ID
-GET http://localhost:3000/api/patient-histories/by-patient/cmghlw4z4000064fcm954n0oh
+GET http://localhost:3000/api/patient-histories/by-patient/cmgxg3jt5000164ess9svo7b1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 

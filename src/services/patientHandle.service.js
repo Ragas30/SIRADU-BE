@@ -6,7 +6,7 @@ export class PatientHandleService {
   static async createPatientHandle(input) {
     const { patientId: pid, patientName, bradenQ, foto, status, nurseIdFromAuth } = input;
 
-    console.log("prismaClient keys:", Object.keys(prismaClient));
+    // console.log("prismaClient keys:", Object.keys(prismaClient));
 
     // 0) Guard: nurseId wajib dari auth
     if (!nurseIdFromAuth) {

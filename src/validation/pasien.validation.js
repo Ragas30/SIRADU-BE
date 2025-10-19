@@ -27,7 +27,6 @@ export class PasienValidation {
 
   static UPDATE_BY_ID = z
     .object({
-      id: idSchema,
       name: nameSchema.optional(),
       nik: nikSchema.optional(),
       birthDate: dateBirthSchema.optional(),
