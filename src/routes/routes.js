@@ -1,3 +1,4 @@
+// src/routes/routes.js
 import express from "express";
 import { AuthController } from "../controller/auth.controller.js";
 import { PasienController } from "../controller/pasien.controller.js";
@@ -11,46 +12,51 @@ import { NurseController } from "../controller/nurse.controller.js";
 
 export const publicRoutes = express.Router();
 
-publicRoutes.post("/auth/refresh", AuthController.refresh);
-publicRoutes.post("/auth/renew", AuthController.renew);
-publicRoutes.get("/me", authMiddleware, requireAuth, (req, res) => {
+/** Guard: pastikan argumen route benar2 function */
+function asHandler(fn, name = "handler") {
+  if (typeof fn !== "function") {
+    // log detail untuk debug cepat
+    console.error(`[routes] ${name} bukan function. typeof =`, typeof fn, "nilai =", fn);
+    throw new TypeError(`${name} must be a function (got ${typeof fn})`);
+  }
+  return fn;
+}
+
+// ---- contoh pemakaian: asHandler(NurseHistoryController.getAllNurseHistories, "NurseHistoryController.getAllNurseHistories")
+
+publicRoutes.post("/auth/refresh", asHandler(AuthController.refresh, "AuthController.refresh"));
+publicRoutes.post("/auth/renew", asHandler(AuthController.renew, "AuthController.renew"));
+publicRoutes.get("/me", asHandler(authMiddleware, "authMiddleware"), asHandler(requireAuth, "requireAuth"), (req, res) => {
   res.json({ success: true, user: req.user });
 });
 
-// DONE
-publicRoutes.get("/test", TestController.test);
+publicRoutes.get("/test", asHandler(TestController.test, "TestController.test"));
 
-// DONE
-publicRoutes.post("/dashboard/login", AuthController.headNurseLogin);
-publicRoutes.post("/nurse/login", AuthController.nurseLogin);
-publicRoutes.post("/nurse/add", AuthController.nurseRegister);
-publicRoutes.get("/nurse", NurseController.getAllNurse);
-publicRoutes.put("/nurse/:id", authMiddleware, NurseController.updateNurse);
-publicRoutes.delete("/nurse/:id", authMiddleware, NurseController.deleteNurse);
+publicRoutes.post("/dashboard/login", asHandler(AuthController.headNurseLogin, "AuthController.headNurseLogin"));
+publicRoutes.post("/nurse/login", asHandler(AuthController.nurseLogin, "AuthController.nurseLogin"));
+publicRoutes.post("/nurse/add", asHandler(AuthController.nurseRegister, "AuthController.nurseRegister"));
+publicRoutes.get("/nurse", asHandler(NurseController.getAllNurse, "NurseController.getAllNurse"));
+publicRoutes.put("/nurse/:id", asHandler(authMiddleware, "authMiddleware"), asHandler(NurseController.updateNurse, "NurseController.updateNurse"));
+publicRoutes.delete("/nurse/:id", asHandler(authMiddleware, "authMiddleware"), asHandler(NurseController.deleteNurse, "NurseController.deleteNurse"));
 
-//patient routess
-publicRoutes.post("/pasienCreate", authMiddleware, PasienController.createPasien);
-publicRoutes.get("/pasiens", authMiddleware, PasienController.getAllPasiens);
-publicRoutes.get("/pasien/:id", authMiddleware, PasienController.getPasienById);
-publicRoutes.put("/pasien/:id", authMiddleware, PasienController.updatePasien);
-publicRoutes.delete("/pasien/:id", authMiddleware, PasienController.deletePasien);
-publicRoutes.post("/patient-handle", authMiddleware, patientHandleController.createPatientHandle);
-publicRoutes.get("/patient-handles", authMiddleware, patientHandleController.getAllPatientHandles);
-publicRoutes.get("/patient-handle/:id", authMiddleware, patientHandleController.getPatientHandleById);
+publicRoutes.post("/pasienCreate", asHandler(authMiddleware, "authMiddleware"), asHandler(PasienController.createPasien, "PasienController.createPasien"));
+publicRoutes.get("/pasiens", asHandler(authMiddleware, "authMiddleware"), asHandler(PasienController.getAllPasiens, "PasienController.getAllPasiens"));
+publicRoutes.get("/pasien/:id", asHandler(authMiddleware, "authMiddleware"), asHandler(PasienController.getPasienById, "PasienController.getPasienById"));
+publicRoutes.put("/pasien/:id", asHandler(authMiddleware, "authMiddleware"), asHandler(PasienController.updatePasien, "PasienController.updatePasien"));
+publicRoutes.delete("/pasien/:id", asHandler(authMiddleware, "authMiddleware"), asHandler(PasienController.deletePasien, "PasienController.deletePasien"));
+publicRoutes.post("/patient-handle", asHandler(authMiddleware, "authMiddleware"), asHandler(patientHandleController.createPatientHandle, "patientHandleController.createPatientHandle"));
+publicRoutes.get("/patient-handles", asHandler(authMiddleware, "authMiddleware"), asHandler(patientHandleController.getAllPatientHandles, "patientHandleController.getAllPatientHandles"));
+publicRoutes.get("/patient-handle/:id", asHandler(authMiddleware, "authMiddleware"), asHandler(patientHandleController.getPatientHandleById, "patientHandleController.getPatientHandleById"));
 
-// reposisi history routes
-publicRoutes.post("/reposisiCreate", authMiddleware, ReposisiHistoryController.createReposisi);
-publicRoutes.get("/reposisis", authMiddleware, ReposisiHistoryController.getAllReposisis);
+publicRoutes.post("/reposisiCreate", asHandler(authMiddleware, "authMiddleware"), asHandler(ReposisiHistoryController.createReposisi, "ReposisiHistoryController.createReposisi"));
+publicRoutes.get("/reposisis", asHandler(authMiddleware, "authMiddleware"), asHandler(ReposisiHistoryController.getAllReposisis, "ReposisiHistoryController.getAllReposisis"));
 
-// patient history routes
-publicRoutes.get("/patient-histories", authMiddleware, PatientHistoryController.getAllPatientHistories);
+publicRoutes.get("/patient-histories", asHandler(authMiddleware, "authMiddleware"), asHandler(PatientHistoryController.getAllPatientHistories, "PatientHistoryController.getAllPatientHistories"));
+publicRoutes.get("/patient-histories/by-patient/:patientId", asHandler(authMiddleware, "authMiddleware"), asHandler(PatientHistoryController.getPatientHistoryById, "PatientHistoryController.getPatientHistoryById"));
+publicRoutes.get("/patient-histories/by-name/:name", asHandler(authMiddleware, "authMiddleware"), asHandler(PatientHistoryController.getPatientHistoryByName, "PatientHistoryController.getPatientHistoryByName"));
 
-publicRoutes.get("/patient-histories/by-patient/:patientId", authMiddleware, PatientHistoryController.getPatientHistoryById);
+publicRoutes.get("/nurse-histories", asHandler(authMiddleware, "authMiddleware"), asHandler(NurseHistoryController.getAllNurseHistories, "NurseHistoryController.getAllNurseHistories"));
+publicRoutes.get("/nurse-histories/by-nurse/:nurseId", asHandler(authMiddleware, "authMiddleware"), asHandler(NurseHistoryController.getNurseHistoryById, "NurseHistoryController.getNurseHistoryById"));
+publicRoutes.get("/nurse-histories/by-name/:name", asHandler(authMiddleware, "authMiddleware"), asHandler(NurseHistoryController.getNurseHistoryByName, "NurseHistoryController.getNurseHistoryByName"));
 
-publicRoutes.get("/patient-histories/by-name/:name", authMiddleware, PatientHistoryController.getPatientHistoryByName);
-
-// nurse history routes
-publicRoutes.get("/nurse-histories", authMiddleware, NurseHistoryController.getAllNurseHistories);
-publicRoutes.get("/nurse-history/:id", authMiddleware, NurseHistoryController.getNurseHistoryById);
-publicRoutes.get("/nurse-histories/by-name/:name", authMiddleware, NurseHistoryController.getNurseHistoryByName);
-publicRoutes.get("/nurse-history/id-options", authMiddleware, NurseHistoryController.getOptions);
+export default publicRoutes;
