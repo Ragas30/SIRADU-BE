@@ -25,7 +25,7 @@ function asHandler(fn, name = "handler") {
 // ---- contoh pemakaian: asHandler(NurseHistoryController.getAllNurseHistories, "NurseHistoryController.getAllNurseHistories")
 
 publicRoutes.post("/auth/refresh", asHandler(AuthController.refresh, "AuthController.refresh"));
-publicRoutes.post("/auth/renew", asHandler(AuthController.renew, "AuthController.renew"));
+publicRoutes.post("/auth/renew",   asHandler(AuthController.renew,   "AuthController.renew"));
 publicRoutes.get("/me", asHandler(authMiddleware, "authMiddleware"), asHandler(requireAuth, "requireAuth"), (req, res) => {
   res.json({ success: true, user: req.user });
 });

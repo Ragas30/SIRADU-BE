@@ -5,13 +5,14 @@ import { publicRoutes } from "../routes/routes.js";
 import { ErrorMiddleware } from "../middleware/error.middleware.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import path from "path";
 
 export const web = express();
 
 const ORIGINS = [
-  "http://localhost:3000", // Next.js dev
-  "http://localhost:5173", // Vite dev
-  process.env.FRONTEND_URL, // contoh: https://fe.domainkamu.com
+  "http://localhost:3000",
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
 ].filter(Boolean);
 
 const corsOptions = {
@@ -27,11 +28,14 @@ const corsOptions = {
   optionsSuccessStatus: 204,
 };
 
+web.set("trust proxy", 1);
+
 web.use(cookieParser());
 web.use(cors(corsOptions));
 
-web.use(express.json());
-web.use(express.urlencoded({ extended: false }));
+
+web.use(express.json({ limit: "5mb" }));
+web.use(express.urlencoded({ extended: false, limit: "5mb" }));
 
 web.use((err, req, res, next) => {
   if (err?.message?.startsWith("Not allowed by CORS")) {
@@ -40,18 +44,17 @@ web.use((err, req, res, next) => {
   next(err);
 });
 
-// --- Swagger ---
-// Jika TIDAK impor swaggerDoc, comment route di bawah:
+// (opsional) static untuk assets
+web.use("/assets", express.static(path.join(process.cwd(), "assets")));
+
+// Swagger (aktifkan jika punya swaggerDoc)
 // web.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
 // web.get("/docs.json", (_req, res) => res.json(swaggerDoc));
 
 web.use("/api", publicRoutes);
 
 web.get("/api/test", (_req, res) => {
-  res.json({
-    success: true,
-    message: "Welcome to SIRADU API",
-  });
+  res.json({ success: true, message: "Welcome to SIRADU API" });
 });
 
 web.use(ErrorMiddleware);

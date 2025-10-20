@@ -30,7 +30,7 @@ function buildCookieOptions(req, { crossSite, maxAge }) {
     }
     return {
       httpOnly: true,
-      secure: false,
+      secure: true, // penting untuk SameSite=None
       sameSite: "none",
       path: "/",
       maxAge,
@@ -75,12 +75,12 @@ export class AuthController {
   // POST /auth/head-nurse/login
   static async headNurseLogin(req, res, next) {
     try {
-      const user = await AuthService.headNurseLogin(req.body);
+      const result = await AuthService.headNurseLogin(req.body);
+      const payloadUser = result.user;
 
-      const accessToken = generateAccessToken(user);
-      const refreshToken = await generateAndStoreRefreshToken(user);
+      const accessToken = generateAccessToken(payloadUser);
+      const refreshToken = await generateAndStoreRefreshToken(payloadUser);
 
-      // Tidak perlu kirim argumen opsi: fungsi sudah fallback ke ENV
       setAccessCookie(req, res, accessToken);
       setRefreshCookie(req, res, refreshToken);
 
@@ -90,10 +90,10 @@ export class AuthController {
         data: {
           accessToken,
           user: {
-            id: user.user.id,
-            name: user.user.name,
-            email: user.user.email,
-            role: user.user.role,
+            id: payloadUser.id,
+            name: payloadUser.name,
+            email: payloadUser.email,
+            role: payloadUser.role,
           },
         },
       });
@@ -105,10 +105,11 @@ export class AuthController {
   // POST /auth/nurse/login
   static async nurseLogin(req, res, next) {
     try {
-      const user = await AuthService.nurseLogin(req.body);
+      const result = await AuthService.nurseLogin(req.body);
+      const payloadUser = result.user;
 
-      const accessToken = generateAccessToken(user);
-      const refreshToken = await generateAndStoreRefreshToken(user);
+      const accessToken = generateAccessToken(payloadUser);
+      const refreshToken = await generateAndStoreRefreshToken(payloadUser);
 
       setAccessCookie(req, res, accessToken);
       setRefreshCookie(req, res, refreshToken);
@@ -119,73 +120,15 @@ export class AuthController {
         data: {
           accessToken,
           user: {
-            id: user.user.id,
-            name: user.user.name,
-            email: user.user.email,
-            role: user.user.role,
+            id: payloadUser.id,
+            name: payloadUser.name,
+            email: payloadUser.email,
+            role: payloadUser.role,
           },
         },
       });
     } catch (error) {
       next(error);
-    }
-  }
-
-  // POST /auth/nurse/register
-  static async nurseRegister(req, res, next) {
-    try {
-      const data = await AuthService.nurseRegister(req.body);
-      return res.status(201).json({
-        success: true,
-        message: "Register successful",
-        data,
-      });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async session(req, res, next) {
-    try {
-      const bearer = req.headers["authorization"];
-      const token = bearer?.startsWith("Bearer ") ? bearer.split(" ")[1] : req.cookies?.at || null;
-
-      if (!token) {
-        return res.status(401).json({
-          success: false,
-          code: "NO_TOKEN",
-          message: "Access token tidak ditemukan",
-        });
-      }
-
-      try {
-        const decoded = verifyAccessToken(token);
-        const user = await prismaClient.user.findUnique({
-          where: { id: decoded.id },
-          select: { id: true, name: true, email: true, role: true },
-        });
-
-        return res.status(200).json({
-          success: true,
-          authenticated: true,
-          user,
-        });
-      } catch (e) {
-        if (e?.name === "TokenExpiredError") {
-          return res.status(401).json({
-            success: false,
-            code: "TOKEN_EXPIRED",
-            message: "Access token kedaluwarsa",
-          });
-        }
-        return res.status(401).json({
-          success: false,
-          code: "TOKEN_INVALID",
-          message: "Access token tidak valid",
-        });
-      }
-    } catch (err) {
-      next(err);
     }
   }
 
@@ -208,11 +151,6 @@ export class AuthController {
     }
   }
 
-  /**
-   * GET /auth/renew (atau POST)
-   * Sliding renew access token bila mendekati kadaluarsa.
-   * Tidak disarankan dipanggil otomatis dari interceptor agar tidak loop.
-   */
   static async renew(req, res, next) {
     try {
       const bearer = req.headers["authorization"];
@@ -246,10 +184,6 @@ export class AuthController {
     }
   }
 
-  /**
-   * POST /auth/logout
-   * Bersihkan cookie & (opsional) revoke refresh aktif di DB.
-   */
   static async logout(req, res, next) {
     try {
       const rt = req.cookies?.rt;
@@ -264,7 +198,7 @@ export class AuthController {
             });
           }
         } catch {
-          // abaikan error verify saat logout
+          // ignore verify error on logout
         }
       }
 

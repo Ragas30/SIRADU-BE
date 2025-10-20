@@ -55,8 +55,8 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
 
 
 ### Get All Patients
-# GET http://localhost:3000/api/pasiens
-GET http://localhost:3000/api/pasiens?q=active&sortBy=name&sortOrder=asc&page=1&pageSize=10
+GET http://localhost:3000/api/pasiens
+# GET http://localhost:3000/api/pasiens?q=non_active&sortBy=name&sortOrder=asc&page=1&pageSize=10
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
