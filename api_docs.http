@@ -103,8 +103,8 @@ GET http://localhost:3000/api/patient-handles
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
-### Get Patient Handle by ID
-GET http://localhost:3000/api/patient-handle/cmgxg3jt5000164ess9svo7b1
+### Get Patient Handle by ID perawat
+GET http://localhost:3000/api/patient-handles/by-nurse/cmgt5he3l000064nw7geplsi4
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
