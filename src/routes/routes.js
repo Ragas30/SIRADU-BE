@@ -15,7 +15,6 @@ export const publicRoutes = express.Router();
 /** Guard: pastikan argumen route benar2 function */
 function asHandler(fn, name = "handler") {
   if (typeof fn !== "function") {
-    // log detail untuk debug cepat
     console.error(`[routes] ${name} bukan function. typeof =`, typeof fn, "nilai =", fn);
     throw new TypeError(`${name} must be a function (got ${typeof fn})`);
   }

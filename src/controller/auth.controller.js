@@ -132,6 +132,19 @@ export class AuthController {
     }
   }
 
+  static async nurseRegister(req, res, next) {
+    try {
+      const data = await AuthService.nurseRegister(req.body);
+      return res.status(201).json({
+        success: true,
+        message: "Register successful",
+        data,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
   static async refresh(req, res, next) {
     try {
       const rt = req.cookies?.rt;
