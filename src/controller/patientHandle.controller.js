@@ -16,8 +16,8 @@ export class PatientHandleController {
       const search = String(req.query.search ?? "").trim();
       const sortBy = SORT_FIELDS.has(String(req.query.sortBy)) ? String(req.query.sortBy) : "createdAt";
       const sortOrder = String(req.query.sortOrder).toLowerCase() === "asc" ? "asc" : "desc";
-      const skip = (page - 1) * pageSize,
-        take = pageSize;
+      const skip = (page - 1) * pageSize;
+      const take = pageSize;
 
       const where = req.isHeadNurse ? {} : { nurseId: String(req.user.id) };
       if (search) {
@@ -27,7 +27,10 @@ export class PatientHandleController {
       const [items, total] = await prismaClient.$transaction([
         prismaClient.patientHandle.findMany({
           where,
-          include: { nurse: { select: { name: true } }, patient: { select: { name: true } } },
+          include: {
+            nurse: { select: { name: true } },
+            patient: { select: { name: true } },
+          },
           orderBy: { [sortBy]: sortOrder },
           skip,
           take,
@@ -60,18 +63,48 @@ export class PatientHandleController {
   // POST /patient-handle
   static async createPatientHandle(req, res, next) {
     try {
-      const result = await PatientHandleService.createPatientHandle({ ...req.body, nurseIdFromAuth: req.user?.id });
-      res.status(201).json({ success: true, message: "Patient Handle created", data: result?.handle ? [result.handle] : [], total: result?.handle ? 1 : 0 });
+      // 🔹 Ubah hasil upload dari multer jadi format yang bisa divalidasi service
+      let foto = undefined;
+      if (req.file) {
+        foto = {
+          type: req.file.mimetype,
+          size: req.file.size,
+          data: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+        };
+      }
+
+      const result = await PatientHandleService.createPatientHandle({
+        ...req.body,
+        nurseIdFromAuth: req.user?.id,
+        foto,
+      });
+
+      res.status(201).json({
+        success: true,
+        message: "Patient Handle created",
+        data: result?.handle ? [result.handle] : [],
+        total: result?.handle ? 1 : 0,
+      });
     } catch (error) {
-      next(error);
+      const status = Number(error?.status) || 500;
+      return res.status(status).json({
+        success: false,
+        message: error.message || "Error",
+        data: [],
+        total: 0,
+      });
     }
   }
-
   // GET /patient-handle/me/latest
   static async getPatientHandleByNurseId(req, res, next) {
     try {
       const result = await PatientHandleService.getOwnLatest(req.user.id);
-      res.status(200).json({ success: true, message: "Patient Handle fetched", data: result ? [result] : [], total: result ? 1 : 0 });
+      res.status(200).json({
+        success: true,
+        message: "Patient Handle fetched",
+        data: result ? [result] : [],
+        total: result ? 1 : 0,
+      });
     } catch (error) {
       if (error?.status === 404) return res.status(404).json({ success: false, message: "Patient Handle not found", data: [], total: 0 });
       next(error);
@@ -83,8 +116,14 @@ export class PatientHandleController {
     try {
       const nurseId = String(req.params.nurseId || "");
       if (!req.canAccessNurse(nurseId)) return res.status(403).json({ success: false, message: "Forbidden", data: [], total: 0 });
+
       const result = await PatientHandleService.getOwnLatest(nurseId);
-      res.status(200).json({ success: true, message: "Patient Handle fetched", data: result ? [result] : [], total: result ? 1 : 0 });
+      res.status(200).json({
+        success: true,
+        message: "Patient Handle fetched",
+        data: result ? [result] : [],
+        total: result ? 1 : 0,
+      });
     } catch (error) {
       if (error?.status === 404) return res.status(404).json({ success: false, message: "Patient Handle not found", data: [], total: 0 });
       next(error);

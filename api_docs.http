@@ -56,7 +56,7 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get All Patients
 GET http://localhost:3000/api/pasiens
-GET http://localhost:3000/api/pasiens?q=non_active&sortBy=name&sortOrder=asc&page=1&pageSize=10
+# GET http://localhost:3000/api/pasiens?q=non_active&sortBy=name&sortOrder=asc&page=1&pageSize=10
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
@@ -104,7 +104,7 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get Patient Handle by ID perawat
-GET http://localhost:3000/api/patient-handles/by-nurse/cmgt5he3l000064nw7geplsi4
+GET http://localhost:3000/api/patient-handles/by-nurse/cmgt5hea5000764nwow3vxjuj
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
