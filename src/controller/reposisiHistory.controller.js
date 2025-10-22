@@ -1,28 +1,40 @@
+import { ReposisiHistoryService } from "../services/reposisiHistory.service.js";
+
 export class ReposisiHistoryController {
+  // POST /reposisi
   static async createReposisi(req, res, next) {
     try {
-      const request = req.body;
-      const result = await ReposisiService.createReposisi(request);
+      let foto;
+      if (req.file) {
+        foto = {
+          type: req.file.mimetype,
+          size: req.file.size,
+          data: `data:${req.file.mimetype};base64,${req.file.buffer.toString("base64")}`,
+        };
+      }
+
+      const payload = {
+        patientId: req.body?.patientId,
+        bradenQ: req.body?.bradenQ,
+        position: req.body?.position,
+        foto,
+        nurseIdFromAuth: req.user?.id,
+      };
+
+      const result = await ReposisiHistoryService.createReposition(payload);
+
       res.status(201).json({
         success: true,
-        message: "Reposisi created successfully",
-        result: result,
+        message: "Reposisi dibuat & jadwal berikutnya diperbarui",
+        data: [result.history],
+        nextRepositionTime: result.nextRepositionTime,
+        total: 1,
       });
-    } catch (error) {
-      next(error);
-    }
-  }
-
-  static async getAllReposisis(req, res, next) {
-    try {
-      const result = await ReposisiService.getAllReposisis();
-      res.status(200).json({
-        success: true,
-        message: "Reposisis fetched successfully",
-        result: result,
+    } catch (err) {
+      const status = Number(err?.status) || 500;
+      return res.status(status).json({
+        success: false, message: err.message || "Error", data: [], total: 0,
       });
-    } catch (error) {
-      next(error);
     }
   }
 }

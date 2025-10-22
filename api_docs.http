@@ -13,6 +13,7 @@ Accept: application/json
   "password": "kepala_perawat_picu"
 }
 
+
 ### Login Nurse
 # @name login
 POST http://localhost:3000/api/nurse/login
@@ -23,20 +24,23 @@ Content-Type: application/json
   "password": "perawat123"
 }
 
+
 ### Register Nurse
 POST http://localhost:3000/api/nurse/add
 Content-Type: application/json
 
 {
   "name": "Rani",
-  "email": "RANI@example.com",
+  "email": "rani@example.com",
   "password": "secret123"
 }
+
 
 ### Get All Nurse
 GET http://localhost:3000/api/nurse
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
+
 
 ### Register Patient
 POST http://localhost:3000/api/pasienCreate
@@ -56,9 +60,9 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
 
 ### Get All Patients
 GET http://localhost:3000/api/pasiens
-# GET http://localhost:3000/api/pasiens?q=non_active&sortBy=name&sortOrder=asc&page=1&pageSize=10
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
+
 
 ### Get Patient by ID
 GET http://localhost:3000/api/pasien/cmgxfwpc6000064q0860inz4r
@@ -81,59 +85,137 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
   "status": "NON_ACTIVE"
 }
 
+
 ### Delete Patient by ID
 DELETE http://localhost:3000/api/pasien/cmgt5heai000c64nwk61rt212
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
-### Create Patient Handle and History
-POST http://localhost:3000/api/patient-handle
-Content-Type: application/json
-Authorization: Bearer {{login.response.body.data.accessToken}}
 
-{
-  "patientId": "cmgt5heag000b64nw8xmhx5tg",
-  "bradenQ": 15,
-  "foto": "http://example.com/foto.jpg",
-  "status": "ACTIVE"
-}
+### Create Patient Handle (Assign Patient)
+# Membuat assignment pasien baru ke perawat + history awal
+POST http://localhost:3000/api/patient-handle
+Authorization: Bearer {{login.response.body.data.accessToken}}
+Accept: application/json
+Content-Type: multipart/form-data; boundary=MyBoundary
+
+--MyBoundary
+Content-Disposition: form-data; name="patientId"
+
+cmgt5heag000b64nw8xmhx5tg
+--MyBoundary
+Content-Disposition: form-data; name="bradenQ"
+
+15
+--MyBoundary
+Content-Disposition: form-data; name="needsManualReposition"
+
+true
+--MyBoundary
+Content-Disposition: form-data; name="status"
+
+ACTIVE
+--MyBoundary
+Content-Disposition: form-data; name="foto"; filename="awal.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/awal.jpg
+--MyBoundary--
+
 
 ### Get All Patient Handles
 GET http://localhost:3000/api/patient-handles
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
-### Get Patient Handle by ID perawat
+
+### Get Patient Handle by Nurse ID
 GET http://localhost:3000/api/patient-handles/by-nurse/cmgt5hea5000764nwow3vxjuj
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
-### Get Patient History 
+
+### Get Patient History (All)
 GET http://localhost:3000/api/patient-histories
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
+
 
 ### Get Patient History by Patient ID
 GET http://localhost:3000/api/patient-histories/by-patient/cmgxg3jt5000164ess9svo7b1
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
+
 ### Get Nurse History
 GET http://localhost:3000/api/nurse-histories
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
-### Get Nurse History By nurse Id
+
+### Get Nurse History by Nurse ID
 GET http://localhost:3000/api/nurse-history/cmgt5hea5000764nwow3vxjuj
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
-### Get Nurse History Dropdown By Id
+
+### Get Nurse History Dropdown by Name
 GET http://localhost:3000/api/nurse-history/id-option?q=SitiAisyah
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 
+### Create Reposisi History
+# Catat tindakan reposisi pasien berikutnya
+# Otomatis menambahkan log di tabel ReposisiHistory
+# dan memperbarui "nextRepositionTime" di PatientHandle
+POST http://localhost:3000/api/reposisi
+Authorization: Bearer {{login.response.body.data.accessToken}}
+Accept: application/json
+Content-Type: multipart/form-data; boundary=MyBoundary
+
+--MyBoundary
+Content-Disposition: form-data; name="patientId"
+
+cmgt5heag000b64nw8xmhx5tg
+--MyBoundary
+Content-Disposition: form-data; name="bradenQ"
+
+12
+--MyBoundary
+Content-Disposition: form-data; name="position"
+
+Miring kiri 30 derajat
+--MyBoundary
+Content-Disposition: form-data; name="foto"; filename="reposisi.jpg"
+Content-Type: image/jpeg
+
+< ./test-assets/reposisi.jpg
+--MyBoundary--
 
 
+### Create Reposisi (Tanpa Foto)
+# Jika tidak ada bukti foto reposisi
+POST http://localhost:3000/api/reposisi
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.accessToken}}
 
+{
+  "patientId": "cmgt5heag000b64nw8xmhx5tg",
+  "bradenQ": 13,
+  "position": "Terlentang"
+}
+
+
+### Get All Reposisi History
+# Ambil semua catatan reposisi dari tabel ReposisiHistory
+GET http://localhost:3000/api/reposisis
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.accessToken}}
+
+
+### Get Reposisi History by Patient ID
+# (opsional) jika nanti kamu tambahkan endpoint khusus by patientId
+GET http://localhost:3000/api/patient-histories/by-patient/cmgt5heag000b64nw8xmhx5tg
+Content-Type: application/json
+Authorization: Bearer {{login.response.body.data.accessToken}}

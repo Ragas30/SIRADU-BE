@@ -6,6 +6,7 @@ import { ErrorMiddleware } from "../middleware/error.middleware.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
 import path from "path";
+import multer from "multer";
 
 export const web = express();
 
@@ -55,6 +56,13 @@ web.use("/api", publicRoutes);
 
 web.get("/api/test", (_req, res) => {
   res.json({ success: true, message: "Welcome to SIRADU API" });
+});
+
+web.use((err, req, res, next) => {
+  if (err instanceof multer.MulterError || /Format file tidak didukung/i.test(err?.message || "")) {
+    return res.status(422).json({ success: false, message: err.message, data: [], total: 0 });
+  }
+  next(err);
 });
 
 web.use(ErrorMiddleware);
