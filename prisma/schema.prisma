@@ -1,7 +1,7 @@
+// prisma/schema.prisma
 generator client {
   provider      = "prisma-client-js"
-  // output   = "../generated/prisma"
-  binaryTargets = ["debian-openssl-3.0.x", "windows"]
+  binaryTargets = ["native", "debian-openssl-3.0.x"] // nyaman di Windows & siap deploy Debian
 }
 
 datasource db {
@@ -54,18 +54,20 @@ enum Role {
 }
 
 model Patient {
-  id            String            @id @default(cuid())
-  name          String
-  nik           String            @unique
-  birthDate     DateTime
-  bedNumber     Int
-  gender        Gender
-  bradenQ       Int
-  status        Status
-  createdAt     DateTime          @default(now())
-  updatedAt     DateTime          @updatedAt
-  reposisi      ReposisiHistory[]
-  PatientHandle PatientHandle[]
+  id                  String            @id @default(cuid())
+  name                String
+  medicalRecordNumber String            @unique  // ← kolom DB benar2 bernama medicalRecordNumber
+  birthDate           DateTime
+  bedNumber           Int
+  roomName            String?           // ← baru
+  gender              Gender
+  bradenQ             Int
+  status              Status
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  reposisi            ReposisiHistory[]
+  PatientHandle       PatientHandle[]
 }
 
 enum Gender {
@@ -93,22 +95,25 @@ model ReposisiHistory {
   bradenQ   Int
   Time      DateTime @default(now())
   foto      String?
+  roomName  String?          // ← baru
+
   patient   Patient  @relation(fields: [patientId], references: [id])
   nurse     User     @relation(fields: [nurseId], references: [id])
 }
 
 model PatientHandle {
-  id        String   @id @default(cuid())
-  patientId String
-  nurseId   String
-  patient   Patient  @relation(fields: [patientId], references: [id])
-  nurse     User     @relation(fields: [nurseId], references: [id])
-  bradenQ   Int
-  foto      String?
-  status    Status   @default(ACTIVE)
+  id                 String    @id @default(cuid())
+  patientId          String
+  nurseId            String
+  patient            Patient   @relation(fields: [patientId], references: [id])
+  nurse              User      @relation(fields: [nurseId], references: [id])
+  bradenQ            Int
+  foto               String?
+  status             Status    @default(ACTIVE)
   nextRepositionTime DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  roomName           String?   // ← baru
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
 
   @@unique([patientId, nurseId])
   @@index([nextRepositionTime, status], name: "idx_next_repos_time_status")

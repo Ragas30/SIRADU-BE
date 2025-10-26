@@ -24,12 +24,17 @@ export class PasienController {
   static async getAllPasiens(req, res, next) {
     try {
       console.log("[DEBUG] Controller.getAllPasiens dipanggil dengan query:", req.query);
-      const result = await PasienService.getAllPasiens(req.query);
+
+      const page = toInt(req.query.page, 1);
+      const pageSize = toInt(req.query.pageSize, 10);
+
+      const result = await PasienService.getAllPasiens({ ...req.query, page, pageSize });
+
       res.status(200).json({
         data: result.data,
         total: result.total,
-        page: result.page,
-        pageSize: result.pageSize,
+        page, // ← jangan ambil dari result.page (tidak ada)
+        pageSize, // ← sama
         totalActive: result.totalActive,
         totalNonActive: result.totalNonActive,
         success: true,
