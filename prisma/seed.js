@@ -1,12 +1,23 @@
 import { prismaClient } from "../src/app/database.js";
 import bcrypt from "bcrypt";
 
-// helper ambil satu perawat "aktif" buat pairing awal
+
 async function pickAnyNurseId() {
-  const nurse = await prismaClient.user.findFirst({
-    where: { role: "PERAWAT" },
+  let nurse = await prismaClient.user.findFirst({
+    where: {
+      role: "PERAWAT",
+      nurseDetail: { some: { nurseStatus: "ON_SHIFT" } },
+    },
     select: { id: true, email: true, name: true },
   });
+
+  if (!nurse) {
+    nurse = await prismaClient.user.findFirst({
+      where: { role: "PERAWAT" },
+      select: { id: true, email: true, name: true },
+    });
+  }
+
   if (!nurse) throw new Error("Tidak ada user PERAWAT untuk dipakai sebagai nurseId.");
   return nurse.id;
 }
@@ -65,37 +76,17 @@ async function seedNurses() {
   for (const n of nurses) {
     const hashed = await bcrypt.hash(n.rawPassword, 10);
 
-    // User (role PERAWAT)
     const user = await prismaClient.user.upsert({
       where: { email: n.email },
-      update: {
-        name: n.name,
-        role: "PERAWAT",
-        password: hashed,
-      },
-      create: {
-        name: n.name,
-        email: n.email,
-        role: "PERAWAT",
-        password: hashed,
-      },
+      update: { name: n.name, role: "PERAWAT", password: hashed },
+      create: { name: n.name, email: n.email, role: "PERAWAT", password: hashed },
       select: { id: true },
     });
 
-    // NurseDetail (userId unik)
     await prismaClient.nurseDetail.upsert({
       where: { userId: user.id },
-      update: {
-        phone: n.phone,
-        address: n.address,
-        nurseStatus: n.nurseStatus, // "ON_SHIFT" | "OFF_SHIFT"
-      },
-      create: {
-        userId: user.id,
-        phone: n.phone,
-        address: n.address,
-        nurseStatus: n.nurseStatus,
-      },
+      update: { phone: n.phone, address: n.address, nurseStatus: n.nurseStatus },
+      create: { userId: user.id, phone: n.phone, address: n.address, nurseStatus: n.nurseStatus },
     });
 
     console.log(`√ Nurse OK: ${n.name} <${n.email}>`);
@@ -103,7 +94,6 @@ async function seedNurses() {
 }
 
 async function seedPatients() {
-  // medicalRecordNumber (dulu nik), plus roomName
   const patients = [
     {
       name: "Ahmad Fauzi",
@@ -140,7 +130,6 @@ async function seedPatients() {
   const anyNurseId = await pickAnyNurseId();
 
   for (const p of patients) {
-    // upsert Patient by medicalRecordNumber (UNIQUE)
     const patient = await prismaClient.patient.upsert({
       where: { medicalRecordNumber: p.medicalRecordNumber },
       update: {
@@ -165,15 +154,15 @@ async function seedPatients() {
       select: { id: true, name: true, bradenQ: true, roomName: true, status: true },
     });
 
-    // PatientHandle (unik: [patientId, nurseId]) — pakai nurse pertama yang ditemukan
+    // Wajib set dekubitus (Boolean) sesuai schema
     await prismaClient.patientHandle.upsert({
-      where: {
-        patientId_nurseId: { patientId: patient.id, nurseId: anyNurseId },
-      },
+      where: { patientId_nurseId: { patientId: patient.id, nurseId: anyNurseId } },
       update: {
         bradenQ: patient.bradenQ,
         status: patient.status,
         roomName: patient.roomName ?? null,
+        dekubitus: false,
+        // nextRepositionTime: null, // opsional
       },
       create: {
         patientId: patient.id,
@@ -181,17 +170,20 @@ async function seedPatients() {
         bradenQ: patient.bradenQ,
         status: patient.status,
         roomName: patient.roomName ?? null,
+        dekubitus: false,
+        // nextRepositionTime: null, // opsional
       },
     });
 
-    // ReposisiHistory (tidak unik, tambahkan entri awal)
+    // ReposisiHistory juga wajib set dekubitus (Boolean) pada schema terbaru
     await prismaClient.reposisiHistory.create({
       data: {
         patientId: patient.id,
         nurseId: anyNurseId,
-        position: "TERTIDUR SUPINE", // contoh posisi awal
+        position: "TERTIDUR SUPINE",
         bradenQ: patient.bradenQ,
         roomName: patient.roomName ?? null,
+        dekubitus: false,
         // Time default now(), foto optional
       },
     });

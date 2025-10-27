@@ -54,20 +54,20 @@ enum Role {
 }
 
 model Patient {
-  id                  String            @id @default(cuid())
+  id                  String   @id @default(cuid())
   name                String
-  medicalRecordNumber String            @unique  // ← kolom DB benar2 bernama medicalRecordNumber
+  medicalRecordNumber String   @unique // ← kolom DB benar2 bernama medicalRecordNumber
   birthDate           DateTime
   bedNumber           Int
-  roomName            String?           // ← baru
+  roomName            String? // ← baru
   gender              Gender
   bradenQ             Int
   status              Status
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
-  reposisi            ReposisiHistory[]
-  PatientHandle       PatientHandle[]
+  reposisi      ReposisiHistory[]
+  PatientHandle PatientHandle[]
 }
 
 enum Gender {
@@ -95,10 +95,11 @@ model ReposisiHistory {
   bradenQ   Int
   Time      DateTime @default(now())
   foto      String?
-  roomName  String?          // ← baru
+  roomName  String?
+  dekubitus Boolean
 
-  patient   Patient  @relation(fields: [patientId], references: [id])
-  nurse     User     @relation(fields: [nurseId], references: [id])
+  patient Patient @relation(fields: [patientId], references: [id])
+  nurse   User    @relation(fields: [nurseId], references: [id])
 }
 
 model PatientHandle {
@@ -111,7 +112,8 @@ model PatientHandle {
   foto               String?
   status             Status    @default(ACTIVE)
   nextRepositionTime DateTime?
-  roomName           String?   // ← baru
+  roomName           String? // ← baru
+  dekubitus          Boolean
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
 
