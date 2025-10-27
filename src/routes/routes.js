@@ -31,7 +31,7 @@ const upload = multer({
 });
 
 // ---- routes lain tetap ----
-publicRoutes.post("/auth/auto-renew",       asHandler(AuthController.autoRenew, "AuthController.autoRenew"));
+publicRoutes.get("/auth/auto-renew", asHandler(AuthController.autoRenew, "AuthController.autoRenew"));
 publicRoutes.get("/me", asHandler(authMiddleware, "authMiddleware"), asHandler(requireAuth, "requireAuth"), (req, res) => res.json({ success: true, user: req.user }));
 publicRoutes.get("/test", asHandler(TestController.test, "TestController.test"));
 
@@ -60,19 +60,22 @@ publicRoutes.post(
 );
 
 publicRoutes.get("/patient-handles/:id", asHandler(authMiddleware, "authMiddleware"), asHandler(requireAuth, "requireAuth"), asHandler(PatientHandleController.getPatientHandleById, "PatientHandleController.getPatientHandleById"));
-publicRoutes.get("/patient-handles/by-nurse/:nurseId", asHandler(authMiddleware, "authMiddleware"), asHandler(requireAuth, "requireAuth"), asHandler(PatientHandleController.getPatientHandleByNurseId, "PatientHandleController.getPatientHandleByNurseId"));
-
-// 🔸 reposisi berikutnya (foto optional) → update nextRepositionTime
-publicRoutes.post(
-  "/reposisi",
+publicRoutes.get(
+  "/patient-handles/by-nurse/:nurseId",
   asHandler(authMiddleware, "authMiddleware"),
   asHandler(requireAuth, "requireAuth"),
-  upload.single("foto"),
-  asHandler(ReposisiHistoryController.createReposisi, "ReposisiHistoryController.createReposisi")
+  asHandler(PatientHandleController.getPatientHandleByNurseId, "PatientHandleController.getPatientHandleByNurseId")
 );
 
+// 🔸 reposisi berikutnya (foto optional) → update nextRepositionTime
+publicRoutes.post("/reposisi", asHandler(authMiddleware, "authMiddleware"), asHandler(requireAuth, "requireAuth"), upload.single("foto"), asHandler(ReposisiHistoryController.createReposisi, "ReposisiHistoryController.createReposisi"));
+
 publicRoutes.post("/reposisiCreate", asHandler(authMiddleware, "authMiddleware"), asHandler(ReposisiHistoryController.createReposisi, "ReposisiHistoryController.createReposisi")); // (opsional: alias lama)
-publicRoutes.get("/reposisis", asHandler(authMiddleware, "authMiddleware"), asHandler(ReposisiHistoryController.getAllReposisis ?? ((req,res)=>res.json({success:true,message:"gunakan endpoint lain",data:[],total:0})), "ReposisiHistoryController.getAllReposisis"));
+publicRoutes.get(
+  "/reposisis",
+  asHandler(authMiddleware, "authMiddleware"),
+  asHandler(ReposisiHistoryController.getAllReposisis ?? ((req, res) => res.json({ success: true, message: "gunakan endpoint lain", data: [], total: 0 })), "ReposisiHistoryController.getAllReposisis")
+);
 
 publicRoutes.get("/patient-histories", asHandler(authMiddleware, "authMiddleware"), asHandler(PatientHistoryController.getAllPatientHistories, "PatientHistoryController.getAllPatientHistories"));
 publicRoutes.get("/patient-histories/by-patient/:patientId", asHandler(authMiddleware, "authMiddleware"), asHandler(PatientHistoryController.getPatientHistoryById, "PatientHistoryController.getPatientHistoryById"));

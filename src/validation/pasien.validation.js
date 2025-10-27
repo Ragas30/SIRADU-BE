@@ -10,7 +10,7 @@ const nameSchema = z.string().trim().min(3, { message: "Nama minimal 3 karakter"
 const dateBirthSchema = z.coerce.date({ invalid_type_error: "Tanggal lahir tidak valid" }).max(new Date(), { message: "Tanggal lahir tidak boleh di masa depan" });
 // const genderSchema = z.nativeEnum(Gender, { invalid_type_error: "Gender tidak valid" });
 const genderSchema = z.enum(GENDER_VALUES, { invalid_type_error: "Gender tidak valid" });
-const bedNumberSchema = z.number().int().min(1, { message: "Nomor tempat tidur harus minimal 1" }).max(100, { message: "Nomor tempat tidur harus maksimal 100" });
+const bedNumberSchema = z.number().int().min(513, { message: "Nomor tempat tidur harus minimal 513" }).max(537, { message: "Nomor tempat tidur harus maksimal 537" });
 const bradenQSchema = z.number().min(1).max(23, { message: "Skor Braden Q harus antara 1–23" });
 const statusSchema = z.enum(["ACTIVE", "NON_ACTIVE"], { invalid_type_error: "Status tidak valid" });
 const roomNameSchema = z.string().trim().min(3, { message: "Nama ruangan minimal 3 karakter" }).max(100, { message: "Nama ruangan maksimal 100 karakter" });
@@ -24,7 +24,7 @@ export class PasienValidation {
     gender: genderSchema,
     bradenQ: bradenQSchema,
     status: statusSchema,
-    roomName: roomNameSchema,
+    // roomName: roomNameSchema,
   });
 
   static UPDATE_BY_ID = z

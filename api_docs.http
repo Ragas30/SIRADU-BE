@@ -2,6 +2,10 @@
 GET http://localhost:3000/api
 
 
+### Check Renew Token
+GET http://localhost:3000/api/auth/auto-renew
+Content-Type: application/json
+
 ### Login Head Nurse
 # @name login
 POST http://localhost:3000/api/dashboard/login
@@ -12,6 +16,7 @@ Accept: application/json
   "email": "kepala_perawat@mdjamil.com",
   "password": "kepala_perawat_picu"
 }
+
 
 
 ### Login Nurse
@@ -48,10 +53,10 @@ Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
-  "name": "Abdul",
-  "nik": "1307011204002001",
+  "name": "Ghazy",
+  "medicalRecordNumber": "1307011204002001",
   "birthDate": "1990-01-02",
-  "bedNumber": 1,
+  "bedNumber": 515,
   "gender": "LAKI_LAKI",
   "bradenQ": 12,
   "status": "ACTIVE"

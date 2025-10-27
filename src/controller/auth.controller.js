@@ -39,9 +39,14 @@ export class AuthController {
 
   static async autoRenew(req, res, next) {
     try {
+      // GET-safe: jangan biarkan di-cache
+      res.setHeader("Cache-Control", "no-store");
+
       const bearer = req.headers.authorization;
       const at = bearer?.startsWith("Bearer ") ? bearer.split(" ")[1] : req.cookies?.at || null;
-      const rt = req.cookies?.rt || req.body?.refreshToken || null;
+
+      // GET: HANYA dari cookie, jangan baca req.body
+      const rt = req.cookies?.rt || req.cookies?.refreshToken || null;
 
       const getUser = async (id) =>
         prismaClient.user.findUnique({
@@ -54,14 +59,32 @@ export class AuthController {
           const decoded = verifyAccessToken(at);
           const user = await getUser(decoded?.id ?? decoded?.sub);
           if (!user) return next(new ResponseError(401, "User tidak ditemukan"));
+
           if (shouldSlideRenew(decoded, 5 * 60)) {
             const newAT = generateAccessToken(user);
             setAccessCookie(req, res, newAT);
-            return res.status(200).json({ success: true, refreshed: true, rotated: false, accessToken: newAT, user, maxAgeMs: maxAgeFromExp(newAT, 15 * 60_000) });
+            return res.status(200).json({
+              success: true,
+              refreshed: true,
+              rotated: false,
+              accessToken: newAT,
+              user,
+              maxAgeMs: maxAgeFromExp(newAT, 15 * 60_000),
+            });
           }
-          return res.status(200).json({ success: true, refreshed: false, rotated: false, accessToken: at, user });
+
+          return res.status(200).json({
+            success: true,
+            refreshed: false,
+            rotated: false,
+            accessToken: at,
+            user,
+          });
         } catch (e) {
-          if (e?.name !== "TokenExpiredError") return next(new ResponseError(401, "Token tidak valid"));
+          if (e?.name !== "TokenExpiredError") {
+            return next(new ResponseError(401, "Token tidak valid"));
+          }
+          // kalau expired, lanjut ke blok RT
         }
       }
 
@@ -80,7 +103,13 @@ export class AuthController {
         }
         setAccessCookie(req, res, accessToken);
         setRefreshCookie(req, res, refreshToken);
-        return res.status(200).json({ success: true, refreshed: true, rotated: true, accessToken, user });
+        return res.status(200).json({
+          success: true,
+          refreshed: true,
+          rotated: true,
+          accessToken,
+          user,
+        });
       } catch {
         clearAuthCookies(req, res);
         return next(new ResponseError(401, "Refresh token invalid/expired"));
@@ -97,7 +126,11 @@ export class AuthController {
         try {
           const p = verifyRefreshToken(rt);
           const userId = String(p?.id ?? p?.userId ?? p?.sub ?? "");
-          if (userId) await prismaClient.refreshToken.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
+          if (userId)
+            await prismaClient.refreshToken.updateMany({
+              where: { userId, revokedAt: null },
+              data: { revokedAt: new Date() },
+            });
         } catch {}
       }
       clearAuthCookies(req, res);
