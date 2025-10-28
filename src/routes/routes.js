@@ -70,7 +70,6 @@ publicRoutes.get(
 // 🔸 reposisi berikutnya (foto optional) → update nextRepositionTime
 publicRoutes.post("/reposisi", asHandler(authMiddleware, "authMiddleware"), asHandler(requireAuth, "requireAuth"), upload.single("foto"), asHandler(ReposisiHistoryController.createReposisi, "ReposisiHistoryController.createReposisi"));
 
-publicRoutes.post("/reposisiCreate", asHandler(authMiddleware, "authMiddleware"), asHandler(ReposisiHistoryController.createReposisi, "ReposisiHistoryController.createReposisi")); // (opsional: alias lama)
 publicRoutes.get(
   "/reposisis",
   asHandler(authMiddleware, "authMiddleware"),

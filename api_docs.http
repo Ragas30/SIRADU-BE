@@ -107,7 +107,7 @@ Content-Type: multipart/form-data; boundary=MyBoundary
 --MyBoundary
 Content-Disposition: form-data; name="patientId"
 
-cmgt5heag000b64nw8xmhx5tg
+cmh8tl3pw0002648gmlt5vj6y
 --MyBoundary
 Content-Disposition: form-data; name="bradenQ"
 
@@ -120,6 +120,10 @@ true
 Content-Disposition: form-data; name="status"
 
 ACTIVE
+--MyBoundary
+Content-Disposition: form-data; name="dekubitus"
+
+false
 --MyBoundary
 Content-Disposition: form-data; name="foto"; filename="awal.jpg"
 Content-Type: image/jpeg

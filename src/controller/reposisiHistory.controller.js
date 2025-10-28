@@ -1,3 +1,4 @@
+// controllers/reposisiHistory.controller.js
 import { ReposisiHistoryService } from "../services/reposisiHistory.service.js";
 
 export class ReposisiHistoryController {
@@ -15,8 +16,9 @@ export class ReposisiHistoryController {
 
       const payload = {
         patientId: req.body?.patientId,
-        bradenQ: req.body?.bradenQ,
+        bradenQ: req.body?.bradenQ, // opsional
         position: req.body?.position,
+        dekubitus: req.body?.dekubitus, // ⬅️ TAMBAHKAN agar sesuai schema (required Boolean di DB)
         foto,
         nurseIdFromAuth: req.user?.id,
       };
@@ -33,7 +35,10 @@ export class ReposisiHistoryController {
     } catch (err) {
       const status = Number(err?.status) || 500;
       return res.status(status).json({
-        success: false, message: err.message || "Error", data: [], total: 0,
+        success: false,
+        message: err.message || "Error",
+        data: [],
+        total: 0,
       });
     }
   }
