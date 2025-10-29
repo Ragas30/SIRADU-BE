@@ -1,7 +1,6 @@
-// validation/patientHandle.validation.js
 import z from "zod";
 
-// NOTE: pakai .cuid(); jika di DB kamu pakai cuid2, ganti ke .cuid2()
+// NOTE: jika DB pakai cuid2, ganti .cuid() -> .cuid2()
 const cuidStr = z.string().cuid({ message: "Harus berupa CUID yang valid" });
 
 const coerceInt1to23 = z
@@ -27,20 +26,6 @@ const FotoSchema = z.object({
   }
 });
 
-// Hanya dipakai untuk UPDATE (CREATE tidak perlu status dari client)
-const StatusSchema = z.preprocess(
-  (v) => String(v ?? "").toUpperCase(),
-  z.enum(["ACTIVE", "NON_ACTIVE"], { invalid_type_error: "Status tidak valid" })
-);
-
-/**
- * ALUR BARU (CREATE):
- * - Cukup patientId (atau patientName)
- * - bradenQ opsional → kalau kosong, ambil dari Patient
- * - nurseIdFromAuth WAJIB (diisi dari token)
- * - dekubitus default false
- * - TIDAK ada status & needsManualReposition di CREATE (di-handle service)
- */
 export const PatientHandleCreateInput = z
   .object({
     patientId: cuidStr.optional(),
@@ -50,24 +35,23 @@ export const PatientHandleCreateInput = z
       .optional()
       .refine((v) => v === undefined || v.length > 0, { message: "Nama pasien tidak boleh kosong" }),
 
-    bradenQ: coerceInt1to23.optional(), // ← opsional
+    bradenQ: coerceInt1to23.optional(),
     foto: FotoSchema.optional(),
 
-    nurseIdFromAuth: cuidStr,           // ← wajib dari auth
-    dekubitus: z.coerce.boolean().default(false), // ← default false
+    nurseIdFromAuth: cuidStr,                 // ← wajib
+    dekubitus: z.coerce.boolean().default(false),
   })
   .refine((o) => !!o.patientId || !!o.patientName, {
     message: "Harus menyertakan patientId atau patientName",
     path: ["patientId"],
   });
 
-/**
- * UPDATE: boleh ubah sebagian field, termasuk status (opsional)
- */
+/** UPDATE (opsional) */
 export const PatientHandleUpdateInput = z.object({
   id: cuidStr,
   bradenQ: coerceInt1to23.optional(),
   foto: FotoSchema.optional(),
-  status: StatusSchema.optional(),      // ← hanya di UPDATE
+  // status bisa ditambahkan kalau memang kamu butuh ubah status via update:
+  // status: z.preprocess((v) => String(v ?? "").toUpperCase(), z.enum(["ACTIVE", "NON_ACTIVE"])).optional(),
   dekubitus: z.coerce.boolean().optional(),
 });

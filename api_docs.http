@@ -25,7 +25,7 @@ POST http://localhost:3000/api/nurse/login
 Content-Type: application/json
 
 {
-  "email": "budi.nurse@mdjamil.com",
+  "email": "john.nurse@mdjamil.com",
   "password": "perawat123"
 }
 
@@ -70,7 +70,7 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
 
 
 ### Get Patient by ID
-GET http://localhost:3000/api/pasien/cmgxfwpc6000064q0860inz4r
+GET http://localhost:3000/api/pasien/cmh8tl3pw0002648gmlt5vj6y
 Content-Type: application/json
 Authorization: Bearer {{login.response.body.data.accessToken}}
 
@@ -100,36 +100,41 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
 ### Create Patient Handle (Assign Patient)
 # Membuat assignment pasien baru ke perawat + history awal
 POST http://localhost:3000/api/patient-handle
-Authorization: Bearer {{login.response.body.data.accessToken}}
 Accept: application/json
-Content-Type: multipart/form-data; boundary=MyBoundary
+Authorization: Bearer {{login.response.body.data.accessToken}}
+Content-Type: application/json
 
---MyBoundary
-Content-Disposition: form-data; name="patientId"
+{
+  "patientId": "cmh8tl3pw0002648gmlt5vj6y"
+}
 
-cmh8tl3pw0002648gmlt5vj6y
---MyBoundary
-Content-Disposition: form-data; name="bradenQ"
+# Content-Type: multipart/form-data; boundary=MyBoundary
+# --MyBoundary
+# Content-Disposition: form-data; name="patientId"
 
-15
---MyBoundary
-Content-Disposition: form-data; name="needsManualReposition"
+# cmh8tl3pw0002648gmlt5vj6y
+# --MyBoundary
+# Content-Disposition: form-data; name="bradenQ"
 
-true
---MyBoundary
-Content-Disposition: form-data; name="status"
+# 15
+# --MyBoundary
+# Content-Disposition: form-data; name="needsManualReposition"
 
-ACTIVE
---MyBoundary
-Content-Disposition: form-data; name="dekubitus"
+# true
+# --MyBoundary
+# Content-Disposition: form-data; name="status"
 
-false
---MyBoundary
-Content-Disposition: form-data; name="foto"; filename="awal.jpg"
-Content-Type: image/jpeg
+# ACTIVE
+# --MyBoundary
+# Content-Disposition: form-data; name="dekubitus"
 
-< ./test-assets/awal.jpg
---MyBoundary--
+# false
+# --MyBoundary
+# Content-Disposition: form-data; name="foto"; filename="awal.jpg"
+# Content-Type: image/jpeg
+
+# < ./test-assets/awal.jpg
+# --MyBoundary--
 
 
 ### Get All Patient Handles
