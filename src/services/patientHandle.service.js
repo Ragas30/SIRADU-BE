@@ -11,7 +11,6 @@ const SHIFT_LOCK_MS = 8 * 60 * 60 * 1000; // 8 jam
 
 async function ensureDir(dir) { await fs.mkdir(dir, { recursive: true }); }
 
-/** Simpan foto image base64 (png/jpg/jpeg/webp/heic) */
 async function saveImageToRepo(patientId, foto) {
   if (!foto?.data || !foto?.type) return null;
 
@@ -52,19 +51,17 @@ export class PatientHandleService {
       const nurseId = input?.nurseIdFromAuth;
       if (!nurseId) { const e = new Error("Unauthorized: nurseId tidak ditemukan dari token"); e.status = 401; throw e; }
 
-      // parse termasuk dekubitus & needsManualReposition
+      // ⬇️ alur baru: cukup patientId / patientName; bradenQ opsional; foto opsional
       const {
-        patientId: pid,
+        patientId: pidIn,
         patientName,
-        bradenQ,
+        bradenQ: bradenQInput,
         foto,
-        status,
-        needsManualReposition,
-        dekubitus,
+        dekubitus = false, // default untuk create baru
       } = PatientHandleCreateInput.parse(input);
 
       // resolve patientId
-      let patientId = pid;
+      let patientId = pidIn;
       if (!patientId) {
         const name = (patientName || "").trim();
         if (!name) { const e = new Error("Harus menyertakan patientId atau patientName"); e.status = 422; throw e; }
@@ -79,21 +76,25 @@ export class PatientHandleService {
         patientId = matches[0].id;
       }
 
-      // 🔹 Ambil roomName dari tabel Patient (sumber kebenaran)
+      // Ambil sumber kebenaran dari Patient
       const patientRow = await prismaClient.patient.findUnique({
         where: { id: patientId },
-        select: { id: true, name: true, roomName: true },
+        select: { id: true, name: true, bradenQ: true, roomName: true },
       });
       if (!patientRow) { const e = new Error("Pasien tidak ditemukan"); e.status = 404; throw e; }
-      const roomName = patientRow.roomName ?? null; // bisa null kalau belum diisi
+
+      const effectiveBradenQ = typeof bradenQInput === "number" ? bradenQInput : patientRow.bradenQ;
+      if (!Number.isFinite(effectiveBradenQ)) {
+        const e = new Error("Braden Q pasien tidak valid"); e.status = 422; throw e;
+      }
 
       const storedPath = await saveImageToRepo(patientId, foto);
+      const roomName = patientRow.roomName ?? null;
+      const nextRepositionTime = calcNextRepositionTime(effectiveBradenQ, new Date());
 
-      const { handle, history } = await prismaClient.$transaction(async (tx) => {
-        // shift-lock 8 jam untuk handle ACTIVE bagi pasien ini
-        const now = Date.now();
-        const lockSince = new Date(now - SHIFT_LOCK_MS);
-
+      const handle = await prismaClient.$transaction(async (tx) => {
+        // shift-lock 8 jam terhadap perawat lain
+        const lockSince = new Date(Date.now() - SHIFT_LOCK_MS);
         const recentActive = await tx.patientHandle.findFirst({
           where: { patientId, status: "ACTIVE", createdAt: { gte: lockSince } },
           select: { id: true, nurseId: true, createdAt: true },
@@ -106,44 +107,50 @@ export class PatientHandleService {
           e.status = 409; throw e;
         }
 
-        // gunakan flag needsManualReposition hasil parse
-        const nextRepositionTime = needsManualReposition ? calcNextRepositionTime(bradenQ, new Date()) : null;
+        // Reactivate jika pair patientId+nurseId sudah ada (pakai @@unique([patientId, nurseId]))
+        const existing = await tx.patientHandle.findUnique({
+          where: { patientId_nurseId: { patientId, nurseId } },
+          select: { id: true },
+        });
 
-        // 🔹 Simpan roomName ke PatientHandle (denormalisasi ringan)
-        const handle = await tx.patientHandle.create({
+        if (existing) {
+          return tx.patientHandle.update({
+            where: { id: existing.id },
+            data: {
+              status: "ACTIVE",
+              bradenQ: effectiveBradenQ,
+              foto: storedPath ?? undefined, // update hanya jika kirim foto baru
+              nextRepositionTime,
+              roomName, // sinkron dgn Patient
+            },
+            include: {
+              patient: { select: { id: true, name: true } },
+              nurse:   { select: { id: true, name: true } },
+            },
+          });
+        }
+
+        // Create baru
+        return tx.patientHandle.create({
           data: {
             patientId,
             nurseId,
-            bradenQ,
+            bradenQ: effectiveBradenQ,
             foto: storedPath ?? null,
-            status: status ?? "ACTIVE",
+            status: "ACTIVE",
             nextRepositionTime,
-            dekubitus,
-            roomName, // ⬅️ NEW
+            roomName,
+            dekubitus, // default false
           },
           include: {
             patient: { select: { id: true, name: true } },
             nurse:   { select: { id: true, name: true } },
           },
         });
-
-        // 🔹 Simpan juga ke ReposisiHistory (untuk jejak historis di waktu itu)
-        const history = await tx.reposisiHistory.create({
-          data: {
-            patientId,
-            nurseId,
-            bradenQ,
-            foto: storedPath ?? null,
-            position: "",
-            dekubitus,
-            roomName, // ⬅️ NEW
-          },
-        });
-
-        return { handle, history };
       });
 
-      return { handle, history };
+      // ❗ Tidak membuat reposisiHistory saat binding
+      return { handle };
     } catch (err) {
       if (err instanceof ZodError) {
         const e = new Error(err.errors?.map((x) => x.message).join("; ") || "Validasi gagal");
