@@ -23,10 +23,12 @@ export function authMiddleware(req, res, next) {
     rejectJwtInUrl(req);
 
     const authHeader = req.headers["authorization"];
-    if (!authHeader) throw new ResponseError(401, "Authorization header tidak ditemukan");
-    const [scheme, token] = String(authHeader).split(" ");
-    if ((scheme || "").toLowerCase() !== "bearer" || !token)
-      throw new ResponseError(401, "Authorization harus format: Bearer <token>");
+    const [scheme, headerToken] = String(authHeader || "").split(" ");
+    const tokenFromHeader =
+      (scheme || "").toLowerCase() === "bearer" && headerToken ? headerToken : null;
+
+    const token = tokenFromHeader || req.cookies?.at; // 👈 fallback dari cookie
+    if (!token) throw new ResponseError(401, "Authorization header atau cookie 'at' tidak ditemukan");
 
     const decoded = jwt.verify(token, ACCESS_SECRET);
     const userId = decoded?.id ?? decoded?.userId ?? decoded?.sub;
@@ -47,6 +49,7 @@ export function authMiddleware(req, res, next) {
     next(err instanceof ResponseError ? err : new ResponseError(401, err?.message || "Unauthorized"));
   }
 }
+
 
 export function requireAuth(req, res, next) {
   if (!req.user?.id) return next(new ResponseError(401, "Unauthorized"));
