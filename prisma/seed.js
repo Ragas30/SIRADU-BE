@@ -1,32 +1,22 @@
 import { prismaClient } from "../src/app/database.js";
 import bcrypt from "bcrypt";
 
-// === Helper: map bedNumber → roomName ===
+// map bedNumber → roomName
 function deriveRoomName(bedNumber) {
   if (typeof bedNumber !== "number" || !Number.isFinite(bedNumber)) return null;
   if (bedNumber >= 513 && bedNumber <= 527) return "seruni";
   if (bedNumber >= 528 && bedNumber <= 537) return "lavender10";
-  return null; // out of range (tidak diharapkan)
+  return null;
 }
 
-async function pickAnyNurseId() {
-  let nurse = await prismaClient.user.findFirst({
-    where: {
-      role: "PERAWAT",
-      nurseDetail: { some: { nurseStatus: "ON_SHIFT" } },
-    },
-    select: { id: true, email: true, name: true },
-  });
-
-  if (!nurse) {
-    nurse = await prismaClient.user.findFirst({
-      where: { role: "PERAWAT" },
-      select: { id: true, email: true, name: true },
-    });
-  }
-
-  if (!nurse) throw new Error("Tidak ada user PERAWAT untuk dipakai sebagai nurseId.");
-  return nurse.id;
+// Jadwal reposisi berdasar BradenQ (tersedia bila nanti ingin dipakai lagi)
+export function hoursForBradenQ(bradenQ) {
+  if (bradenQ <= 12) return 2; // High risk
+  if (bradenQ <= 14) return 3; // Moderate
+  if (bradenQ <= 18) return 4; // Mild
+  const fallback = 6;
+  const envVal = Number(process.env.REPOSITION_HOURS_NO_RISK || fallback);
+  return Number.isFinite(envVal) && envVal > 0 ? envVal : fallback;
 }
 
 async function seedHeadNurse() {
@@ -101,13 +91,12 @@ async function seedNurses() {
 }
 
 async function seedPatients() {
-  // Contoh data pasien disesuaikan dengan range bedNumber 513–537
   const patients = [
     {
       name: "Ahmad Fauzi",
-      medicalRecordNumber: "1307011990010001", // 16 digit
+      medicalRecordNumber: "1307011990010001",
       birthDate: new Date("1990-01-10"),
-      bedNumber: 513, // → seruni
+      bedNumber: 513, // seruni
       gender: "LAKI_LAKI",
       bradenQ: 18,
       status: "ACTIVE",
@@ -116,7 +105,7 @@ async function seedPatients() {
       name: "Siti Aisyah",
       medicalRecordNumber: "1307011992030002",
       birthDate: new Date("1992-03-20"),
-      bedNumber: 528, // → lavender10
+      bedNumber: 528, // lavender10
       gender: "PEREMPUAN",
       bradenQ: 16,
       status: "ACTIVE",
@@ -125,80 +114,46 @@ async function seedPatients() {
       name: "Rangga Saputra",
       medicalRecordNumber: "1307011988120003",
       birthDate: new Date("1988-12-05"),
-      bedNumber: 527, // → seruni (batas atas)
+      bedNumber: 527, // seruni
       gender: "LAKI_LAKI",
       bradenQ: 14,
       status: "NON_ACTIVE",
     },
   ];
 
-  const anyNurseId = await pickAnyNurseId();
-
   for (const p of patients) {
     const roomName = deriveRoomName(p.bedNumber);
-    if (!roomName) {
-      throw new Error(`bedNumber ${p.bedNumber} di luar range 513–537`);
-    }
+    if (!roomName) throw new Error(`bedNumber ${p.bedNumber} di luar range 513–537`);
 
-    const patient = await prismaClient.patient.upsert({
+    const isActive = p.status === "ACTIVE";
+    const exitDate = isActive ? null : new Date();
+
+    await prismaClient.patient.upsert({
       where: { medicalRecordNumber: p.medicalRecordNumber },
       update: {
         name: p.name,
         birthDate: p.birthDate,
         bedNumber: p.bedNumber,
-        roomName, // set otomatis dari mapping
+        roomName,
         gender: p.gender,
         bradenQ: p.bradenQ,
         status: p.status,
+        exitDate, // set exitDate saat NON_ACTIVE
       },
       create: {
         name: p.name,
         medicalRecordNumber: p.medicalRecordNumber,
         birthDate: p.birthDate,
         bedNumber: p.bedNumber,
-        roomName, // set otomatis dari mapping
+        roomName,
         gender: p.gender,
         bradenQ: p.bradenQ,
         status: p.status,
-      },
-      select: { id: true, name: true, bradenQ: true, roomName: true, status: true },
-    });
-
-    // PatientHandle (wajib set dekubitus:boolean)
-    await prismaClient.patientHandle.upsert({
-      where: { patientId_nurseId: { patientId: patient.id, nurseId: anyNurseId } },
-      update: {
-        bradenQ: patient.bradenQ,
-        status: patient.status,
-        roomName: patient.roomName ?? null,
-        dekubitus: false,
-        // nextRepositionTime: null,
-      },
-      create: {
-        patientId: patient.id,
-        nurseId: anyNurseId,
-        bradenQ: patient.bradenQ,
-        status: patient.status,
-        roomName: patient.roomName ?? null,
-        dekubitus: false,
-        // nextRepositionTime: null,
+        exitDate,
       },
     });
 
-    // ReposisiHistory (wajib set dekubitus:boolean)
-    await prismaClient.reposisiHistory.create({
-      data: {
-        patientId: patient.id,
-        nurseId: anyNurseId,
-        position: "TERTIDUR SUPINE",
-        bradenQ: patient.bradenQ,
-        roomName: patient.roomName ?? null,
-        dekubitus: false,
-        // Time: default NOW()
-      },
-    });
-
-    console.log(`√ Patient OK: ${p.name} (MRN: ${p.medicalRecordNumber}) → bed ${p.bedNumber} / ${roomName}`);
+    console.log(`√ Patient OK: ${p.name} (MRN: ${p.medicalRecordNumber}) → bed ${p.bedNumber} / ${roomName} | status=${p.status}`);
   }
 }
 

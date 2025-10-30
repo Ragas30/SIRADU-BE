@@ -54,17 +54,18 @@ enum Role {
 }
 
 model Patient {
-  id                  String   @id @default(cuid())
+  id                  String    @id @default(cuid())
   name                String
-  medicalRecordNumber String   @unique // ← kolom DB benar2 bernama medicalRecordNumber
+  medicalRecordNumber String    @unique
   birthDate           DateTime
   bedNumber           Int
-  roomName            String? // ← baru
+  roomName            String?
   gender              Gender
   bradenQ             Int
   status              Status
-  createdAt           DateTime @default(now())
-  updatedAt           DateTime @updatedAt
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  exitDate            DateTime?
 
   reposisi      ReposisiHistory[]
   PatientHandle PatientHandle[]
