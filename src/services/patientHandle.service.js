@@ -32,18 +32,13 @@ async function saveImageToRepo(patientId, foto) {
   const file = `patient-${safePid}-${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
 
   await fs.writeFile(path.join(REPO_DIR, file), buf, { encoding: "binary" });
-  // Kembalikan relative path agar bisa disajikan statis
   return path.join("assets", "reposisi_pict", file).replace(/\\/g, "/");
 }
 
-/* ============================================================
- *  Interval reposisi (berdasarkan BradenQ)
- * ============================================================ */
 export function hoursForBradenQ(bradenQ) {
   if (bradenQ <= 12) return 2; // High risk
   if (bradenQ <= 14) return 3; // Moderate
   if (bradenQ <= 18) return 4; // Mild
-  // No Risk → pakai env atau fallback 6 jam
   const fallback = 6;
   const envVal = Number(process.env.REPOSITION_HOURS_NO_RISK || fallback);
   return Number.isFinite(envVal) && envVal > 0 ? envVal : fallback;
@@ -54,31 +49,24 @@ export function calcNextRepositionTime(bradenQ, from = new Date()) {
 }
 
 /* ============================================================
- *  Helper Shift (WIB/Asia-Jakarta, UTC+7) — TANPA ubah schema
- *  - Kita definisikan "aktif di shift" = row dengan updatedAt
- *    berada di dalam jendela shift saat ini (WIB).
- *  - Shift: 08–16 (PAGI), 16–24 (SORE), 00–08 (MALAM).
+ *  Zona waktu & window hari/shift (WIB -> UTC)
  * ============================================================ */
 const JAKARTA_OFFSET_MIN = 7 * 60; // Jakarta tidak memiliki DST
 
-// Ubah komponen waktu Jakarta → Date UTC
 function toUtcFromJakarta({ y, m, d, hh, mm = 0, ss = 0 }) {
-  // Buat waktu "Jakarta" dalam zona UTC basis, lalu kurangi 7 jam => UTC real
   const jakartaMs = Date.UTC(y, m - 1, d, hh, mm, ss);
   return new Date(jakartaMs - JAKARTA_OFFSET_MIN * 60 * 1000);
 }
 
-/** Ambil window shift aktif berdasarkan "sekarang" (WIB) → kembalikan batas dalam UTC */
+/** Window shift berjalan dalam WIB (PAGI 08–16, SORE 16–24, MALAM 00–08) */
 function getCurrentShiftWindow(now = new Date()) {
-  // Geser waktu sekarang ke WIB dengan menambahkan offset
-  const ms = now.getTime() + JAKARTA_OFFSET_MIN * 60 * 1000;
+  const ms = now.getTime() + JAKARTA_OFFSET_MIN * 60 * 1000; // geser ke WIB
   const z = new Date(ms);
   const y = z.getUTCFullYear();
   const m = z.getUTCMonth() + 1;
   const d = z.getUTCDate();
   const hh = z.getUTCHours();
 
-  // PAGI: 08:00–16:00 WIB
   if (hh >= 8 && hh < 16) {
     return {
       shiftType: "PAGI",
@@ -86,7 +74,6 @@ function getCurrentShiftWindow(now = new Date()) {
       endUTC:   toUtcFromJakarta({ y, m, d, hh: 16 }),
     };
   }
-  // SORE: 16:00–24:00 WIB
   if (hh >= 16 && hh < 24) {
     return {
       shiftType: "SORE",
@@ -94,7 +81,6 @@ function getCurrentShiftWindow(now = new Date()) {
       endUTC:   toUtcFromJakarta({ y, m, d, hh: 24 }),
     };
   }
-  // MALAM: 00:00–08:00 WIB
   return {
     shiftType: "MALAM",
     startUTC: toUtcFromJakarta({ y, m, d, hh: 0 }),
@@ -102,31 +88,30 @@ function getCurrentShiftWindow(now = new Date()) {
   };
 }
 
-/* ============================================================
- *  SERVICE
- * ============================================================ */
+/** Window HARI INI penuh (00:00–24:00 WIB) */
+function getTodayJakartaWindow(now = new Date()) {
+  const ms = now.getTime() + JAKARTA_OFFSET_MIN * 60 * 1000; // ke WIB
+  const z = new Date(ms);
+  const y = z.getUTCFullYear();
+  const m = z.getUTCMonth() + 1;
+  const d = z.getUTCDate();
+  const startUTC = toUtcFromJakarta({ y, m, d, hh: 0 });
+  const endUTC   = toUtcFromJakarta({ y, m, d: d + 1, hh: 0 }); // 24:00 = esok 00:00
+  return { startUTC, endUTC };
+}
+
 export class PatientHandleService {
-  /**
-   * Binding per shift (tanpa ubah DB):
-   * - Perawat cukup kirim patientId atau patientName (+ foto opsional)
-   * - bradenQ & roomName diambil dari Patient (bradenQ bisa override bila dikirim)
-   * - Hitung nextRepositionTime dari bradenQ
-   * - Lock per shift: block jika ada perawat lain aktif di window shift (updatedAt dalam window)
-   * - Reactivate: jika pair (patientId, nurseId) sudah ada → update row (updatedAt otomatis jadi "cap" shift aktif)
-   * - Tidak membuat ReposisiHistory pada tahap binding
-   */
   static async createPatientHandle(input) {
     try {
       const nurseId = input?.nurseIdFromAuth;
       if (!nurseId) { const e = new Error("Unauthorized: nurseId tidak ditemukan dari token"); e.status = 401; throw e; }
 
-      // Validasi payload minimal (sesuai validation terbaru)
       const {
         patientId: pidIn,
         patientName,
-        bradenQ: bradenQInput, // opsional
-        foto,                   // opsional
-        dekubitus = false,      // default saat create pertama kali
+        bradenQ: bradenQInput,
+        foto,
+        dekubitus = false,
       } = PatientHandleCreateInput.parse(input);
 
       // Resolve patientId dari patientName jika perlu (strict unique-by-name)
@@ -139,14 +124,13 @@ export class PatientHandleService {
         patientId = matches[0].id;
       }
 
-      // Ambil referensi dari Patient (sumber kebenaran)
+      // Ambil referensi dari Patient
       const patientRow = await prismaClient.patient.findUnique({
         where: { id: patientId },
         select: { id: true, name: true, bradenQ: true, roomName: true },
       });
       if (!patientRow) { const e = new Error("Pasien tidak ditemukan"); e.status = 404; throw e; }
 
-      // BradenQ efektif (dari input kalau ada, kalau tidak pakai dari Patient)
       const effectiveBradenQ = typeof bradenQInput === "number" ? bradenQInput : patientRow.bradenQ;
       if (!Number.isFinite(effectiveBradenQ)) {
         const e = new Error("Braden Q pasien tidak valid"); e.status = 422; throw e;
@@ -156,13 +140,10 @@ export class PatientHandleService {
       const roomName = patientRow.roomName ?? null;
       const nextRepositionTime = calcNextRepositionTime(effectiveBradenQ, new Date());
 
-      // Window shift aktif (WIB) – untuk lock & penentuan "aktif pada shift ini"
       const { startUTC, endUTC } = getCurrentShiftWindow(new Date());
 
       const handle = await prismaClient.$transaction(async (tx) => {
-        // 🔒 LOCK PER SHIFT:
-        // Cek apakah ADA handle ACTIVE utk pasien ini yang dipegang perawat LAIN
-        // dalam window shift saat ini (updatedAt ∈ [startUTC, endUTC))
+        // Lock per shift: cegah ACTIVE oleh perawat lain pada shift berjalan
         const otherActive = await tx.patientHandle.findFirst({
           where: {
             patientId,
@@ -176,22 +157,21 @@ export class PatientHandleService {
           const e = new Error("Pasien sedang ditangani perawat lain pada shift ini"); e.status = 409; throw e;
         }
 
-        // Reactivate jika pasangan (patientId, nurseId) sudah ada (gunakan @@unique([patientId, nurseId]))
+        // Reactivate jika pair sudah ada
         const existing = await tx.patientHandle.findUnique({
           where: { patientId_nurseId: { patientId, nurseId } },
           select: { id: true },
         });
 
         if (existing) {
-          // Update akan memantik updatedAt = now (→ dianggap aktif pada shift berjalan)
           return tx.patientHandle.update({
             where: { id: existing.id },
             data: {
               status: "ACTIVE",
               bradenQ: effectiveBradenQ,
-              foto: storedPath ?? undefined, // hanya update jika ada foto baru
+              foto: storedPath ?? undefined,
               nextRepositionTime,
-              roomName,                       // sinkron dengan Patient terbaru
+              roomName,
             },
             include: {
               patient: { select: { id: true, name: true } },
@@ -200,7 +180,7 @@ export class PatientHandleService {
           });
         }
 
-        // Create baru untuk pair ini (pertama kali)
+        // Create baru
         return tx.patientHandle.create({
           data: {
             patientId,
@@ -210,7 +190,7 @@ export class PatientHandleService {
             status: "ACTIVE",
             nextRepositionTime,
             roomName,
-            dekubitus, // wajib di schema
+            dekubitus,
           },
           include: {
             patient: { select: { id: true, name: true } },
@@ -235,51 +215,78 @@ export class PatientHandleService {
   }
 
   /* ============================================================
-   *  Legacy getters (tidak diubah)
+   *  Getters — dibatasi HARI INI (WIB) & “terbaru” (updatedAt)
    * ============================================================ */
-  static async getAllPatientHandles() {
+
+  /** Head nurse: list semua handle HARI INI; Nurse: terbatas ke shift berjalan HARI INI */
+  static async listForUserContext({ nurseId, isHeadNurse }) {
+    const now = new Date();
+    const { startUTC: dayStart, endUTC: dayEnd }   = getTodayJakartaWindow(now);
+    const { startUTC: shiftStart, endUTC: shiftEnd } = getCurrentShiftWindow(now);
+
+    if (isHeadNurse) {
+      return prismaClient.patientHandle.findMany({
+        where: { updatedAt: { gte: dayStart, lt: dayEnd } },
+        include: { nurse: { select: { id: true, name: true } }, patient: { select: { id: true, name: true } } },
+        orderBy: { updatedAt: "desc" },
+      });
+    }
+
+    // Nurse biasa: aktif pada shift berjalan + hanya HARI INI
     return prismaClient.patientHandle.findMany({
+      where: {
+        nurseId,
+        status: "ACTIVE",
+        updatedAt: { gte: shiftStart < dayStart ? dayStart : shiftStart, lt: shiftEnd > dayEnd ? dayEnd : shiftEnd },
+      },
+      include: { nurse: { select: { id: true, name: true } }, patient: { select: { id: true, name: true } } },
+      orderBy: { updatedAt: "desc" },
+    });
+  }
+
+  /** List semua patientHandle HARI INI (untuk penggunaan legacy — kini dibatasi hari ini) */
+  static async getAllPatientHandles() {
+    const { startUTC, endUTC } = getTodayJakartaWindow(new Date());
+    return prismaClient.patientHandle.findMany({
+      where: { updatedAt: { gte: startUTC, lt: endUTC } },
       include: { nurse: { select: { name: true } }, patient: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: { updatedAt: "desc" },
     });
   }
 
   static async getPatientHandleById(id) {
+    // Detail by id tetap diperbolehkan tanpa filter hari (untuk akses langsung)
     return prismaClient.patientHandle.findUnique({
       where: { id },
       include: { nurse: { select: { name: true } }, patient: { select: { name: true } } },
     });
   }
 
+  /** Ambil handle milik nurseId yang TERBARU pada HARI INI */
   static async getPatientHandleByNurseId(nurseId) {
+    const { startUTC, endUTC } = getTodayJakartaWindow(new Date());
     const ph = await prismaClient.patientHandle.findFirst({
-      where: { nurseId },
+      where: { nurseId, updatedAt: { gte: startUTC, lt: endUTC } },
       include: { nurse: { select: { name: true } }, patient: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
+      orderBy: { updatedAt: "desc" },
     });
-    if (!ph) { const e = new Error("Patient Handle not found"); e.status = 404; throw e; }
+    if (!ph) { const e = new Error("Patient Handle not found (hari ini)"); e.status = 404; throw e; }
     return ph;
   }
 
-  /* ============================================================
-   *  Safe variants
-   *  - Perawat biasa: hanya lihat handle yang aktif di shift saat ini
-   *  - Kepala perawat: bisa lihat semua (tanpa filter window)
-   * ============================================================ */
-  static async listForUserContext({ nurseId, isHeadNurse }) {
-    const { startUTC, endUTC } = getCurrentShiftWindow(new Date());
-
-    const where = isHeadNurse
-      ? {}
-      : { nurseId, status: "ACTIVE", updatedAt: { gte: startUTC, lt: endUTC } };
-
-    return prismaClient.patientHandle.findMany({
-      where,
-      include: { nurse: { select: { id: true, name: true } }, patient: { select: { id: true, name: true } } },
-      orderBy: { createdAt: "desc" },
+  /** Ambil handle TERBARU milik nurse yang masih HARI INI */
+  static async getOwnLatest(nurseId) {
+    const { startUTC, endUTC } = getTodayJakartaWindow(new Date());
+    const ph = await prismaClient.patientHandle.findFirst({
+      where: { nurseId, updatedAt: { gte: startUTC, lt: endUTC } },
+      include: { nurse: { select: { id: true, name: true } }, patient: { select: { name: true } } },
+      orderBy: { updatedAt: "desc" },
     });
+    if (!ph) { const e = new Error("Patient Handle not found (hari ini)"); e.status = 404; throw e; }
+    return ph;
   }
 
+  /** Detail by id untuk user context dengan otorisasi nurse/head nurse */
   static async getByIdForUserContext(id, { nurseId, isHeadNurse }) {
     const ph = await prismaClient.patientHandle.findUnique({
       where: { id },
@@ -289,16 +296,6 @@ export class PatientHandleService {
     if (!isHeadNurse && String(ph.nurse?.id || "") !== String(nurseId || "")) {
       const e = new Error("Forbidden"); e.status = 403; throw e;
     }
-    return ph;
-  }
-
-  static async getOwnLatest(nurseId) {
-    const ph = await prismaClient.patientHandle.findFirst({
-      where: { nurseId },
-      include: { nurse: { select: { id: true, name: true } }, patient: { select: { name: true } } },
-      orderBy: { createdAt: "desc" },
-    });
-    if (!ph) { const e = new Error("Patient Handle not found"); e.status = 404; throw e; }
     return ph;
   }
 }
