@@ -54,8 +54,8 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
 
 {
   "name": "Ghazy",
-  "medicalRecordNumber": "1307011204002001",
-  "birthDate": "1990-01-02",
+  "medicalRecordNumber": "12345678",
+  "birthDate": "2000-04-26",
   "bedNumber": 515,
   "gender": "LAKI_LAKI",
   "bradenQ": 12,
@@ -105,7 +105,7 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
 Content-Type: application/json
 
 {
-  "patientId": "cmh8tl3pw0002648gmlt5vj6y"
+  "patientId": "cmhdawuzr0002646giqvi3a30"
 }
 
 # Content-Type: multipart/form-data; boundary=MyBoundary
