@@ -105,7 +105,7 @@ Authorization: Bearer {{login.response.body.data.accessToken}}
 Content-Type: application/json
 
 {
-  "patientId": "cmhdbj6nz000064c0l2m543w1"
+  "patientId": "cmhd8aln4000f64i8mhu072pl"
 }
 
 # Content-Type: multipart/form-data; boundary=MyBoundary
