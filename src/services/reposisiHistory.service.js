@@ -3,6 +3,7 @@ import path from "path";
 import crypto from "crypto";
 import { prismaClient } from "../app/database.js";
 import { ReposisiHistoryCreateInput } from "../validation/reposisiHistory.validation.js";
+import { toJakartaISOString } from "../lib/timezone.js";
 
 const REPO_DIR = path.join(process.cwd(), "assets", "reposisi_pict");
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
@@ -100,6 +101,6 @@ export class ReposisiHistoryService {
       return { history };
     });
 
-    return { history, nextRepositionTime };
+    return { history, nextRepositionTime: toJakartaISOString(nextRepositionTime) };
   }
 }

@@ -1,5 +1,8 @@
 import { prismaClient } from "../app/database.js";
-import { PatientHandleService } from "../services/patientHandle.service.js";
+import {
+  PatientHandleService,
+  mapHandleToWIB,
+} from "../services/patientHandle.service.js";
 
 function toInt(v, fb) {
   const n = Number.parseInt(String(v ?? ""), 10);
@@ -55,7 +58,7 @@ export class PatientHandleController {
       res.status(200).json({
         success: true,
         message: "Patient Handles fetched",
-        data: items,
+        data: items.map(mapHandleToWIB),
         total,
         page,
         pageSize,

@@ -70,3 +70,12 @@ npx prisma db seed
 ```bash
 npm run dev
 ```
+
+---
+
+## 📘 Swagger API Docs
+
+- Setelah server jalan, buka `http://localhost:3000/docs` untuk UI atau `http://localhost:3000/docs.json` untuk file JSON.
+- Secara default seluruh endpoint sudah menggunakan root ` /api`, jadi setiap request di Swagger akan diarahkan ke `http://localhost:<PORT>/api/...`.
+- Atur `SWAGGER_BASE_URL` di `.env` bila ingin mengganti host default (misal URL staging). Gunakan `SWAGGER_EXTRA_SERVERS` (dipisah koma) jika perlu menambahkan beberapa host lain.
+- File spesifikasi berada di `assets/swagger.json`. Perbarui file ini bila ada perubahan endpoint supaya dokumentasi selalu sinkron.

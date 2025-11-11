@@ -5,6 +5,11 @@ import crypto from "crypto";
 import { prismaClient } from "../app/database.js";
 import { PatientHandleCreateInput } from "../validation/patientHandle.validation.js";
 import { ZodError } from "zod";
+import {
+  JAKARTA_OFFSET_MS,
+  toJakartaISOString,
+  toUtcFromJakarta,
+} from "../lib/timezone.js";
 
 /* ============================================================
  *  Penyimpanan foto (repo lokal)
@@ -54,24 +59,10 @@ export function calcNextRepositionTime(bradenQ, from = new Date()) {
 /* ============================================================
  *  Zona waktu & window hari/shift (WIB -> UTC)
  * ============================================================ */
-const JAKARTA_OFFSET_MIN = 7 * 60; // GMT+7 (WIB)
-
-/** WIB → UTC */
-function toUtcFromJakarta({ y, m, d, hh, mm = 0, ss = 0 }) {
-  const jakartaMs = Date.UTC(y, m - 1, d, hh, mm, ss);
-  return new Date(jakartaMs - JAKARTA_OFFSET_MIN * 60 * 1000);
-}
-
-/** UTC → ISO WIB (tanpa “Z”) */
-function toJakartaISOString(date) {
-  if (!date) return null;
-  const local = new Date(date.getTime() + JAKARTA_OFFSET_MIN * 60 * 1000);
-  return local.toISOString().slice(0, 19); // yyyy-MM-ddTHH:mm:ss
-}
 
 /** Window shift berjalan dalam WIB (PAGI 08–16, SORE 16–24, MALAM 00–08) */
 function getCurrentShiftWindow(now = new Date()) {
-  const ms = now.getTime() + JAKARTA_OFFSET_MIN * 60 * 1000; // ke WIB
+  const ms = now.getTime() + JAKARTA_OFFSET_MS; // ke WIB
   const z = new Date(ms);
   const y = z.getUTCFullYear();
   const m = z.getUTCMonth() + 1;
@@ -101,7 +92,7 @@ function getCurrentShiftWindow(now = new Date()) {
 
 /** Window HARI INI penuh (00:00–24:00 WIB) */
 function getTodayJakartaWindow(now = new Date()) {
-  const ms = now.getTime() + JAKARTA_OFFSET_MIN * 60 * 1000;
+  const ms = now.getTime() + JAKARTA_OFFSET_MS;
   const z = new Date(ms);
   const y = z.getUTCFullYear();
   const m = z.getUTCMonth() + 1;
@@ -112,7 +103,7 @@ function getTodayJakartaWindow(now = new Date()) {
 }
 
 /** Konversi semua tanggal di patientHandle → WIB string */
-function mapHandleToWIB(handle) {
+export function mapHandleToWIB(handle) {
   if (!handle) return null;
   return {
     ...handle,

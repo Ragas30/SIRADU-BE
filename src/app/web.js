@@ -1,12 +1,12 @@
 // app/web.js
 import express from "express";
 import swaggerUi from "swagger-ui-express";
-// import swaggerDoc from "../../assets/swagger.json" assert { type: "json" };
+import { readFileSync } from "node:fs";
+import path from "path";
 import { publicRoutes } from "../routes/routes.js";
 import { ErrorMiddleware } from "../middleware/error.middleware.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import path from "path";
 import multer from "multer";
 
 export const web = express();
@@ -68,9 +68,54 @@ web.use((err, req, res, next) => {
 // static
 web.use("/assets", express.static(path.join(process.cwd(), "assets")));
 
-// swagger (opsional)
-// web.use("/docs", swaggerUi.serve, swaggerUi.setup(swaggerDoc));
-// web.get("/docs.json", (_req, res) => res.json(swaggerDoc));
+// swagger ui (read-only, serve at /docs)
+const API_ROOT = "/api";
+
+function buildSwaggerServers() {
+  const servers = [];
+  const fromEnv = (process.env.SWAGGER_BASE_URL || "").trim();
+  const fallbackUrl = `http://localhost:${process.env.PORT || 3000}`;
+  const primary = (fromEnv || fallbackUrl).replace(/\/+$/, "");
+  servers.push({
+    url: `${primary}${API_ROOT}`,
+    description: fromEnv ? "Configured base URL" : "Local dev",
+  });
+
+  const extra = (process.env.SWAGGER_EXTRA_SERVERS || "")
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+
+  extra.forEach((url, idx) => {
+    servers.push({
+      url: url.endsWith("/") ? url.slice(0, -1) : url,
+      description: `Extra #${idx + 1}`,
+    });
+  });
+
+  return servers;
+}
+
+const swaggerDoc = JSON.parse(
+  readFileSync(path.join(process.cwd(), "assets", "swagger.json"), "utf8")
+);
+
+const resolvedSwaggerDoc = (() => {
+  const clone = JSON.parse(JSON.stringify(swaggerDoc));
+  clone.servers = buildSwaggerServers();
+  if (!clone.basePath) clone.basePath = API_ROOT;
+  return clone;
+})();
+
+web.use(
+  "/docs",
+  swaggerUi.serve,
+  swaggerUi.setup(resolvedSwaggerDoc, {
+    customSiteTitle: "SIRADU API Docs",
+    explorer: true,
+  })
+);
+web.get("/docs.json", (_req, res) => res.json(resolvedSwaggerDoc));
 
 // routes
 web.use("/api", publicRoutes);

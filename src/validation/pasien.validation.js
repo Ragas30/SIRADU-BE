@@ -27,19 +27,27 @@ export class PasienValidation {
   });
 
   static UPDATE_BY_ID = z
-    .object({
-      name: nameSchema.optional(),
-      medicalRecordNumber: medicalRecordNumberSchema.optional(),
-      birthDate: dateBirthSchema.optional(),
-      bedNumber: bedNumberSchema.optional(),
-      gender: genderSchema.optional(),
-      bradenQ: bradenQSchema.optional(),
-      status: statusSchema.optional(),
-      roomName: roomNameSchema.optional(),
-    })
-    .refine((data) => Object.values(data).some((v) => v !== undefined), {
-      message: "Minimal satu field harus diubah",
-    });
+  .object({
+    name: nameSchema.optional(),
+    medicalRecordNumber: medicalRecordNumberSchema.optional(),
+    birthDate: dateBirthSchema.optional(),
+    bedNumber: bedNumberSchema.optional(),
+    gender: genderSchema.optional(),
+    bradenQ: bradenQSchema.optional(),
+    status: statusSchema.optional(),
+    roomName: roomNameSchema.optional(),
+  })
+  // pastikan minimal ada satu field yang dikirim (!= undefined)
+  .refine((data) => {
+    // true jika ada minimal satu properti yang dikirim oleh client
+    for (const v of Object.values(data)) {
+      if (v !== undefined) return true;
+    }
+    return false;
+  }, {
+    message: "Minimal satu field harus diubah",
+  });
+
 
   static GET_BY_ID = z.object({ id: idSchema });
 
