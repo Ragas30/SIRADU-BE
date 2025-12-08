@@ -6,6 +6,7 @@ const ACCESS_SECRET   = process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET;
 const REFRESH_SECRET  = process.env.JWT_REFRESH_SECRET;
 const ACCESS_EXPIRES  = process.env.JWT_ACCESS_EXPIRES || "15m";
 const REFRESH_EXPIRES = process.env.JWT_REFRESH_EXPIRES || "7d";
+const ALLOW_HTTP_LOCAL_COOKIES = String(process.env.ALLOW_HTTP_LOCAL_COOKIES || "true") === "true";
 if (!ACCESS_SECRET) throw new Error("JWT_ACCESS_SECRET/JWT_SECRET missing");
 if (!REFRESH_SECRET) throw new Error("JWT_REFRESH_SECRET missing");
 
@@ -78,10 +79,18 @@ export function buildCookieOptions(req, { crossSite, maxAge }) {
   const viaProto = req.get?.("x-forwarded-proto")?.includes("https");
   const isHttps = req.secure || viaProto;
   const domain = process.env.COOKIE_DOMAIN || undefined;
+  const host = req.hostname || "";
+  const isLocalhost = /^(localhost|127\.0\.0\.1)$/i.test(host);
+
   if (crossSite) {
-    if (!isHttps) throw new Error("Cross-site cookie needs HTTPS");
-    return { httpOnly: true, secure: true, sameSite: "none", path: "/", domain, maxAge };
+    // Default: secure true. Kecuali dev + localhost + diizinkan env → secure false agar cookie tetap terset di HTTP.
+    let secure = true;
+    if (!isHttps && !isProd && isLocalhost && ALLOW_HTTP_LOCAL_COOKIES) {
+      secure = false;
+    }
+    return { httpOnly: true, secure, sameSite: "none", path: "/", domain, maxAge };
   }
+
   return { httpOnly: true, secure: isHttps || isProd, sameSite: "lax", path: "/", domain, maxAge };
 }
 
