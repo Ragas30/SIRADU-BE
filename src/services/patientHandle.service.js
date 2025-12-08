@@ -61,7 +61,7 @@ export function calcNextRepositionTime(bradenQ, from = new Date()) {
  * ============================================================ */
 
 /** Window shift berjalan dalam WIB (PAGI 08–16, SORE 16–24, MALAM 00–08) */
-function getCurrentShiftWindow(now = new Date()) {
+export function getCurrentShiftWindow(now = new Date()) {
   const ms = now.getTime() + JAKARTA_OFFSET_MS; // ke WIB
   const z = new Date(ms);
   const y = z.getUTCFullYear();
@@ -91,7 +91,7 @@ function getCurrentShiftWindow(now = new Date()) {
 }
 
 /** Window HARI INI penuh (00:00–24:00 WIB) */
-function getTodayJakartaWindow(now = new Date()) {
+export function getTodayJakartaWindow(now = new Date()) {
   const ms = now.getTime() + JAKARTA_OFFSET_MS;
   const z = new Date(ms);
   const y = z.getUTCFullYear();
@@ -277,7 +277,7 @@ export class PatientHandleService {
 
     const results = isHeadNurse
       ? await prismaClient.patientHandle.findMany({
-          where: { updatedAt: { gte: dayStart, lt: dayEnd } },
+          where: { status: "ACTIVE", updatedAt: { gte: dayStart, lt: dayEnd } },
           include: {
             nurse: { select: { id: true, name: true } },
             patient: { select: { id: true, name: true } },
@@ -306,7 +306,7 @@ export class PatientHandleService {
   static async getAllPatientHandles() {
     const { startUTC, endUTC } = getTodayJakartaWindow(new Date());
     const rows = await prismaClient.patientHandle.findMany({
-      where: { updatedAt: { gte: startUTC, lt: endUTC } },
+      where: { status: "ACTIVE", updatedAt: { gte: startUTC, lt: endUTC } },
       include: {
         nurse: { select: { name: true } },
         patient: { select: { name: true } },
@@ -330,7 +330,11 @@ export class PatientHandleService {
   static async getPatientHandleByNurseId(nurseId) {
     const { startUTC, endUTC } = getTodayJakartaWindow(new Date());
     const ph = await prismaClient.patientHandle.findFirst({
-      where: { nurseId, updatedAt: { gte: startUTC, lt: endUTC } },
+      where: {
+        nurseId,
+        status: "ACTIVE",
+        updatedAt: { gte: startUTC, lt: endUTC },
+      },
       include: {
         nurse: { select: { name: true } },
         patient: { select: { name: true } },
@@ -348,7 +352,11 @@ export class PatientHandleService {
   static async getOwnLatest(nurseId) {
     const { startUTC, endUTC } = getTodayJakartaWindow(new Date());
     const ph = await prismaClient.patientHandle.findFirst({
-      where: { nurseId, updatedAt: { gte: startUTC, lt: endUTC } },
+      where: {
+        nurseId,
+        status: "ACTIVE",
+        updatedAt: { gte: startUTC, lt: endUTC },
+      },
       include: {
         nurse: { select: { id: true, name: true } },
         patient: { select: { name: true } },
