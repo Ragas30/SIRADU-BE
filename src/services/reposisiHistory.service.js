@@ -4,7 +4,15 @@ import crypto from "crypto";
 import { prismaClient } from "../app/database.js";
 import { ReposisiHistoryCreateInput } from "../validation/reposisiHistory.validation.js";
 import { toJakartaISOString } from "../lib/timezone.js";
-import { calcNextRepositionTime } from "./patientHandle.service.js";
+import { calcNextRepositionTime, alignToJakarta } from "./patientHandle.service.js";
+
+function mapHistoryToWIB(history) {
+  if (!history) return history;
+  return {
+    ...history,
+    Time: history.Time ? toJakartaISOString(history.Time) : null,
+  };
+}
 
 const REPO_DIR = path.join(process.cwd(), "assets", "reposisi_pict");
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
@@ -39,7 +47,11 @@ export class ReposisiHistoryService {
       dekubitus,
       foto,
       nurseIdFromAuth,
+      submittedAt,
     } = ReposisiHistoryCreateInput.parse(input);
+
+    const submittedDate = submittedAt ? new Date(submittedAt) : new Date();
+    const baseTime = alignToJakarta(submittedDate);
 
     // pastikan ada handle ACTIVE untuk pair ini
     const handle = await prismaClient.patientHandle.findFirst({
@@ -56,7 +68,7 @@ export class ReposisiHistoryService {
     }
 
     const effectiveBradenQ = bradenQ ?? handle.bradenQ;
-    const nextRepositionTime = calcNextRepositionTime(effectiveBradenQ, new Date());
+    const nextRepositionTime = calcNextRepositionTime(effectiveBradenQ, baseTime);
     const storedPath = await saveImageToRepo(patientId, foto);
 
     // roomName dari Patient (sumber kebenaran)
@@ -73,6 +85,7 @@ export class ReposisiHistoryService {
           position,
           dekubitus,            // REQUIRED by schema
           roomName,             // jejak ruangan saat itu
+          Time: baseTime,
         },
       });
 
@@ -89,6 +102,6 @@ export class ReposisiHistoryService {
       return { history };
     });
 
-    return { history, nextRepositionTime: toJakartaISOString(nextRepositionTime) };
+    return { history: mapHistoryToWIB(history), nextRepositionTime: toJakartaISOString(nextRepositionTime) };
   }
 }

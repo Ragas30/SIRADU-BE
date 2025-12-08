@@ -101,6 +101,10 @@ model ReposisiHistory {
 
   patient Patient @relation(fields: [patientId], references: [id])
   nurse   User    @relation(fields: [nurseId], references: [id])
+
+  @@index([patientId, Time], name: "idx_repos_patient_time")
+  @@index([nurseId, Time], name: "idx_repos_nurse_time")
+  @@index([Time], name: "idx_repos_time")
 }
 
 model PatientHandle {

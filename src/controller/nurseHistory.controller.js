@@ -15,6 +15,7 @@ export const NurseHistoryController = {
       const search = typeof req.query.search === "string" ? req.query.search : "";
       const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "Time";
       const sortOrder = typeof req.query.sortOrder === "string" && ["asc", "desc"].includes(req.query.sortOrder.toLowerCase()) ? req.query.sortOrder.toLowerCase() : "desc";
+      const cursor = req.query.cursor;
 
       const { data, total } = await NurseHistoryService.getAllNurseHistories({
         page,
@@ -22,6 +23,7 @@ export const NurseHistoryController = {
         search,
         sortBy,
         sortOrder,
+        cursor,
       });
 
       res.status(200).json({
@@ -48,6 +50,7 @@ export const NurseHistoryController = {
       const search = typeof req.query.search === "string" ? req.query.search : "";
       const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "Time";
       const sortOrder = typeof req.query.sortOrder === "string" && ["asc", "desc"].includes(req.query.sortOrder.toLowerCase()) ? req.query.sortOrder.toLowerCase() : "desc";
+      const cursor = req.query.cursor;
 
       const { data, total } = await NurseHistoryService.getNurseHistoryByIdNurse({
         nurseId,
@@ -56,6 +59,7 @@ export const NurseHistoryController = {
         search,
         sortBy,
         sortOrder,
+        cursor,
       });
 
       res.status(200).json({
@@ -81,6 +85,7 @@ export const NurseHistoryController = {
       const pageSize = toInt(req.query.pageSize, 10);
       const sortBy = typeof req.query.sortBy === "string" ? req.query.sortBy : "Time";
       const sortOrder = typeof req.query.sortOrder === "string" && ["asc", "desc"].includes(req.query.sortOrder.toLowerCase()) ? req.query.sortOrder.toLowerCase() : "desc";
+      const cursor = req.query.cursor;
 
       const { data, total } = await NurseHistoryService.getNurseHistoryByNurseName({
         name,
@@ -88,6 +93,7 @@ export const NurseHistoryController = {
         pageSize,
         sortBy,
         sortOrder,
+        cursor,
       });
 
       res.status(200).json({

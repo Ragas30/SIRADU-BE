@@ -5,7 +5,11 @@ const { Gender } = Prisma;
 const GENDER_VALUES = ["LAKI_LAKI", "PEREMPUAN"];
 
 const idSchema = z.string().cuid({ message: "ID harus berupa CUID yang valid" });
-const medicalRecordNumberSchema = z.string().min(8, { message: "Nomor rekam medis harus minimal 8 karakter" }).length(8, { message: "Nomor rekam medis harus 8 digit" });
+const medicalRecordNumberSchema = z
+  .string()
+  .trim()
+  .min(8, { message: "Nomor rekam medis harus minimal 8 karakter" })
+  .max(30, { message: "Nomor rekam medis maksimal 30 karakter" });
 const nameSchema = z.string().trim().min(3, { message: "Nama minimal 3 karakter" }).max(100, { message: "Nama maksimal 100 karakter" });
 const dateBirthSchema = z.coerce.date({ invalid_type_error: "Tanggal lahir tidak valid" }).max(new Date(), { message: "Tanggal lahir tidak boleh di masa depan" });
 const genderSchema = z.enum(GENDER_VALUES, { invalid_type_error: "Gender tidak valid" });

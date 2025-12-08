@@ -19,6 +19,7 @@ export class ReposisiHistoryController {
         bradenQ: req.body?.bradenQ, // opsional
         position: req.body?.position,
         dekubitus: req.body?.dekubitus, // ⬅️ TAMBAHKAN agar sesuai schema (required Boolean di DB)
+        submittedAt: req.body?.submittedAt,
         foto,
         nurseIdFromAuth: req.user?.id,
       };

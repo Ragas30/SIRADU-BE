@@ -47,6 +47,7 @@ export const ReposisiHistoryCreateInput = z.object({
   position,                                   // dari body
   bradenQ: z.coerce.number().int().min(1).max(23).optional(), // boleh kosong → pakai dari handle
   dekubitus: z.coerce.boolean().default(false),
+  submittedAt: z.coerce.date().optional(),
   foto: FotoSchema.optional(),                // dari multer → base64
   nurseIdFromAuth: cuidStr,                   // dari token (req.user.id)
 });

@@ -8,6 +8,7 @@
     "build:swagger": "node src/lib/swagger.cjs",
     "dev": "nodemon src/main.js",
     "seed": "prisma db seed",
+    "seed:large": "node prisma/seed-large.js",
     "postinstall": "prisma generate",
     "build": "prisma generate && next build"
   },

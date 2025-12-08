@@ -71,7 +71,6 @@ npx prisma db seed
 npm run dev
 ```
 
----
 
 ## 📘 Swagger API Docs
 

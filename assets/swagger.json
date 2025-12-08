@@ -1549,7 +1549,9 @@
             "type": "string"
           },
           "medicalRecordNumber": {
-            "type": "string"
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 30
           },
           "birthDate": {
             "type": "string",
@@ -1602,7 +1604,9 @@
             "type": "string"
           },
           "medicalRecordNumber": {
-            "type": "string"
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 30
           },
           "birthDate": {
             "type": "string",
@@ -1629,7 +1633,9 @@
             "type": "string"
           },
           "medicalRecordNumber": {
-            "type": "string"
+            "type": "string",
+            "minLength": 8,
+            "maxLength": 30
           },
           "birthDate": {
             "type": "string",

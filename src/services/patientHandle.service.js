@@ -52,7 +52,7 @@ export function hoursForBradenQ(bradenQ) {
   return Number.isFinite(envVal) && envVal > 0 ? envVal : fallback;
 }
 
-function alignToJakarta(from = new Date()) {
+export function alignToJakarta(from = new Date()) {
   // Normalisasi waktu berdasarkan komponen WIB supaya konsisten meski server di zona lain
   const ms = from.getTime() + JAKARTA_OFFSET_MS;
   const z = new Date(ms);
