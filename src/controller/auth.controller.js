@@ -11,7 +11,7 @@ export class AuthController {
       const { user, accessToken, refreshToken } = await AuthService.headNurseLogin(req.body);
       setAccessCookie(req, res, accessToken);
       setRefreshCookie(req, res, refreshToken);
-      res.status(200).json({ success: true, message: "Login successful", data: { accessToken, user } });
+      res.status(200).json({ success: true, message: "Login successful", data: { accessToken, refreshToken, user } });
     } catch (e) {
       next(e);
     }
@@ -22,7 +22,7 @@ export class AuthController {
       const { user, accessToken, refreshToken } = await AuthService.nurseLogin(req.body);
       setAccessCookie(req, res, accessToken);
       setRefreshCookie(req, res, refreshToken);
-      res.status(200).json({ success: true, message: "Login successful", data: { accessToken, user } });
+      res.status(200).json({ success: true, message: "Login successful", data: { accessToken, refreshToken, user } });
     } catch (e) {
       next(e);
     }
@@ -68,6 +68,7 @@ export class AuthController {
               refreshed: true,
               rotated: false,
               accessToken: newAT,
+              refreshToken: rt || null,
               user,
               maxAgeMs: maxAgeFromExp(newAT, 15 * 60_000),
             });
@@ -78,6 +79,7 @@ export class AuthController {
             refreshed: false,
             rotated: false,
             accessToken: at,
+            refreshToken: rt || null,
             user,
           });
         } catch (e) {
@@ -108,6 +110,7 @@ export class AuthController {
           refreshed: true,
           rotated: true,
           accessToken,
+          refreshToken,
           user,
         });
       } catch {
