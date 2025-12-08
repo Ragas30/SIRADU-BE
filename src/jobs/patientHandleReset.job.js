@@ -12,7 +12,6 @@ export async function resetStalePatientHandles(now = new Date()) {
     },
     data: {
       status: "NON_ACTIVE",
-      nextRepositionTime: null,
     },
   });
   return result.count;
