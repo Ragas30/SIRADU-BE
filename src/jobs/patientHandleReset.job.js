@@ -8,7 +8,7 @@ export async function resetStalePatientHandles(now = new Date()) {
   const result = await prismaClient.patientHandle.updateMany({
     where: {
       status: "ACTIVE",
-      updatedAt: { lt: startUTC },
+      createdAt: { lt: startUTC },
     },
     data: {
       status: "NON_ACTIVE",

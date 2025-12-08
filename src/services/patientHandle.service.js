@@ -277,7 +277,7 @@ export class PatientHandleService {
 
     const results = isHeadNurse
       ? await prismaClient.patientHandle.findMany({
-          where: { status: "ACTIVE", updatedAt: { gte: dayStart, lt: dayEnd } },
+          where: { status: "ACTIVE", createdAt: { gte: dayStart, lt: dayEnd } },
           include: {
             nurse: { select: { id: true, name: true } },
             patient: { select: { id: true, name: true } },
@@ -288,7 +288,7 @@ export class PatientHandleService {
           where: {
             nurseId,
             status: "ACTIVE",
-            updatedAt: {
+            createdAt: {
               gte: shiftStart < dayStart ? dayStart : shiftStart,
               lt: shiftEnd > dayEnd ? dayEnd : shiftEnd,
             },
@@ -306,7 +306,7 @@ export class PatientHandleService {
   static async getAllPatientHandles() {
     const { startUTC, endUTC } = getTodayJakartaWindow(new Date());
     const rows = await prismaClient.patientHandle.findMany({
-      where: { status: "ACTIVE", updatedAt: { gte: startUTC, lt: endUTC } },
+      where: { status: "ACTIVE", createdAt: { gte: startUTC, lt: endUTC } },
       include: {
         nurse: { select: { name: true } },
         patient: { select: { name: true } },
@@ -333,7 +333,7 @@ export class PatientHandleService {
       where: {
         nurseId,
         status: "ACTIVE",
-        updatedAt: { gte: startUTC, lt: endUTC },
+        createdAt: { gte: startUTC, lt: endUTC },
       },
       include: {
         nurse: { select: { name: true } },
@@ -355,7 +355,7 @@ export class PatientHandleService {
       where: {
         nurseId,
         status: "ACTIVE",
-        updatedAt: { gte: startUTC, lt: endUTC },
+        createdAt: { gte: startUTC, lt: endUTC },
       },
       include: {
         nurse: { select: { id: true, name: true } },
