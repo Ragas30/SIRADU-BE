@@ -52,8 +52,22 @@ export function hoursForBradenQ(bradenQ) {
   return Number.isFinite(envVal) && envVal > 0 ? envVal : fallback;
 }
 
+function alignToJakarta(from = new Date()) {
+  // Normalisasi waktu berdasarkan komponen WIB supaya konsisten meski server di zona lain
+  const ms = from.getTime() + JAKARTA_OFFSET_MS;
+  const z = new Date(ms);
+  const y = z.getUTCFullYear();
+  const m = z.getUTCMonth() + 1;
+  const d = z.getUTCDate();
+  const hh = z.getUTCHours();
+  const mm = z.getUTCMinutes();
+  const ss = z.getUTCSeconds();
+  return toUtcFromJakarta({ y, m, d, hh, mm, ss });
+}
+
 export function calcNextRepositionTime(bradenQ, from = new Date()) {
-  return new Date(from.getTime() + hoursForBradenQ(bradenQ) * 60 * 60 * 1000);
+  const base = alignToJakarta(from);
+  return new Date(base.getTime() + hoursForBradenQ(bradenQ) * 60 * 60 * 1000);
 }
 
 /* ============================================================

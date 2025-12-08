@@ -4,6 +4,7 @@ import crypto from "crypto";
 import { prismaClient } from "../app/database.js";
 import { ReposisiHistoryCreateInput } from "../validation/reposisiHistory.validation.js";
 import { toJakartaISOString } from "../lib/timezone.js";
+import { calcNextRepositionTime } from "./patientHandle.service.js";
 
 const REPO_DIR = path.join(process.cwd(), "assets", "reposisi_pict");
 const MAX_SIZE = 2 * 1024 * 1024; // 2MB
@@ -27,19 +28,6 @@ async function saveImageToRepo(patientId, foto) {
   const file = `reposisi-${safePid}-${Date.now()}-${crypto.randomBytes(6).toString("hex")}.${ext}`;
   await fs.writeFile(path.join(REPO_DIR, file), buf, { encoding: "binary" });
   return path.join("assets", "reposisi_pict", file).replace(/\\/g, "/");
-}
-
-/** Interval reposisi (BradenQ) → jam */
-function hoursForBradenQ(bradenQ) {
-  if (bradenQ <= 12) return 2;     // High risk
-  if (bradenQ <= 14) return 3;     // Moderate
-  if (bradenQ <= 18) return 4;     // Mild
-  const fallback = 6;              // No risk
-  const envVal = Number(process.env.REPOSITION_HOURS_NO_RISK || fallback);
-  return Number.isFinite(envVal) && envVal > 0 ? envVal : fallback;
-}
-function calcNextRepositionTime(bradenQ, from = new Date()) {
-  return new Date(from.getTime() + hoursForBradenQ(bradenQ) * 60 * 60 * 1000);
 }
 
 export class ReposisiHistoryService {
