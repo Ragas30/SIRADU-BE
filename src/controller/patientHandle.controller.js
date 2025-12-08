@@ -2,6 +2,7 @@ import { prismaClient } from "../app/database.js";
 import {
   PatientHandleService,
   mapHandleToWIB,
+  getTodayJakartaWindow,
 } from "../services/patientHandle.service.js";
 
 function toInt(v, fb) {
@@ -28,8 +29,13 @@ export class PatientHandleController {
       const skip = (page - 1) * pageSize;
       const take = pageSize;
 
+      const { startUTC, endUTC } = getTodayJakartaWindow(new Date());
       const baseWhere = req.isHeadNurse ? {} : { nurseId: toId(req.user.id) };
-      const where = { ...baseWhere };
+      const where = {
+        ...baseWhere,
+        status: "ACTIVE",
+        createdAt: { gte: startUTC, lt: endUTC },
+      };
 
       if (search) {
         where.OR = [

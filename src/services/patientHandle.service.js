@@ -182,7 +182,10 @@ export class PatientHandleService {
         new Date()
       );
 
-      const { startUTC, endUTC } = getCurrentShiftWindow(new Date());
+      const now = new Date();
+      const { startUTC, endUTC } = getCurrentShiftWindow(now);
+      const { startUTC: dayStart, endUTC: dayEnd } =
+        getTodayJakartaWindow(now);
 
       const handle = await prismaClient.$transaction(async (tx) => {
         // Cegah ACTIVE oleh perawat lain di shift berjalan
@@ -203,9 +206,13 @@ export class PatientHandleService {
           throw e;
         }
 
-        // Reactivate jika sudah ada pair
-        const existing = await tx.patientHandle.findUnique({
-          where: { patientId_nurseId: { patientId, nurseId } },
+        // Cek apakah sudah ada handle PAIR ini pada HARI ini
+        const existing = await tx.patientHandle.findFirst({
+          where: {
+            patientId,
+            nurseId,
+            createdAt: { gte: dayStart, lt: dayEnd },
+          },
           select: { id: true },
         });
 
