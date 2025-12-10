@@ -4,15 +4,40 @@ import { toJakartaISOString } from "../lib/timezone.js";
 
 const SORT_FIELDS = new Set(["Time", "bradenQ", "createdAt"]);
 const MAX_PAGE_SIZE = 200;
+const MAX_OFFSET_RECORDS = 50000; // batasi offset agar query tidak berat
 
 function buildPagination({ page, pageSize, cursor }) {
   const safePage = Number.isFinite(page) && page > 0 ? page : 1;
   const rawSize = Number.isFinite(pageSize) && pageSize > 0 ? pageSize : 10;
-  const safeSize = Math.min(rawSize, MAX_PAGE_SIZE);
+  const take = Math.min(rawSize, MAX_PAGE_SIZE);
+
+  // Dengan cursor, kita pakai keyset pagination (skip=1 untuk lewati baris cursor)
   if (cursor) {
-    return { cursor: { id: String(cursor) }, skip: 1, take: safeSize, page: safePage, pageSize: safeSize };
+    return {
+      cursor: { id: String(cursor) },
+      skip: 1,
+      take,
+      page: safePage,
+      pageSize: take,
+      mode: "cursor",
+      pageCapped: false,
+    };
   }
-  return { skip: (safePage - 1) * safeSize, take: safeSize, page: safePage, pageSize: safeSize };
+
+  // Fallback offset pagination dengan pembatas
+  const rawSkip = (safePage - 1) * take;
+  const skip = Math.min(rawSkip, MAX_OFFSET_RECORDS);
+  const pageCapped = rawSkip !== skip;
+  const effectivePage = Math.floor(skip / take) + 1;
+
+  return {
+    skip,
+    take,
+    page: effectivePage,
+    pageSize: take,
+    mode: "offset",
+    pageCapped,
+  };
 }
 
 function mapHistory(r) {
@@ -31,9 +56,11 @@ export class PatientHistoryService {
           }
         : undefined;
 
-      const { skip, take, page: p, pageSize: ps, cursor: cur } = buildPagination({ page, pageSize, cursor });
+      const { skip, take, page: p, pageSize: ps, cursor: cur, mode, pageCapped } = buildPagination({ page, pageSize, cursor });
       const by = SORT_FIELDS.has(sortBy) ? sortBy : "Time";
       const order = sortOrder?.toLowerCase() === "asc" ? "asc" : "desc";
+
+      const doCount = mode === "offset"; // hindari count berat saat pakai cursor
 
       const [rows, total] = await Promise.all([
         prismaClient.reposisiHistory.findMany({
@@ -42,19 +69,23 @@ export class PatientHistoryService {
             patient: { select: { id: true, name: true } },
             nurse: { select: { id: true, name: true } },
           },
-          orderBy: [{ [by]: order }, { id: "asc" }],
+          orderBy: [{ [by]: order }, { id: "asc" }], // tambahkan id untuk urutan deterministik
           skip,
           take,
           ...(cur ? { cursor: cur } : {}),
         }),
-        prismaClient.reposisiHistory.count({ where }),
+        doCount ? prismaClient.reposisiHistory.count({ where }) : Promise.resolve(null),
       ]);
+
+      const nextCursor = rows.length === take ? rows[rows.length - 1].id : null;
 
       return {
         data: rows.map(mapHistory),
         total,
+        nextCursor,
         page: p,
         pageSize: ps,
+        pageCapped,
       };
     } catch (e) {
       throw new ResponseError(500, "Internal Server Error", e);
@@ -69,9 +100,11 @@ export class PatientHistoryService {
       });
       if (!patient) throw new ResponseError(404, "Patient not found");
 
-      const { skip, take, page: p, pageSize: ps, cursor: cur } = buildPagination(opts);
+      const { skip, take, page: p, pageSize: ps, cursor: cur, mode, pageCapped } = buildPagination(opts);
       const by = SORT_FIELDS.has(opts.sortBy) ? opts.sortBy : "Time";
       const order = opts.sortOrder?.toLowerCase() === "asc" ? "asc" : "desc";
+
+      const doCount = mode === "offset";
 
       const [rows, total] = await Promise.all([
         prismaClient.reposisiHistory.findMany({
@@ -85,18 +118,22 @@ export class PatientHistoryService {
           take,
           ...(cur ? { cursor: cur } : {}),
         }),
-        prismaClient.reposisiHistory.count({ where: { patientId } }),
+        doCount ? prismaClient.reposisiHistory.count({ where: { patientId } }) : Promise.resolve(null),
       ]);
 
       if (!rows.length) {
         throw new ResponseError(404, "Patient history not found");
       }
 
+      const nextCursor = rows.length === take ? rows[rows.length - 1].id : null;
+
       return {
         data: rows.map(mapHistory),
         total,
+        nextCursor,
         page: p,
         pageSize: ps,
+        pageCapped,
       };
     } catch (e) {
       if (e instanceof ResponseError) throw e;
@@ -110,9 +147,11 @@ export class PatientHistoryService {
         patient: { name: { contains: name, mode: "insensitive" } },
       };
 
-      const { skip, take, page: p, pageSize: ps, cursor: cur } = buildPagination(opts);
+      const { skip, take, page: p, pageSize: ps, cursor: cur, mode, pageCapped } = buildPagination(opts);
       const by = SORT_FIELDS.has(opts.sortBy) ? opts.sortBy : "Time";
       const order = opts.sortOrder?.toLowerCase() === "asc" ? "asc" : "desc";
+
+      const doCount = mode === "offset";
 
       const [rows, total] = await Promise.all([
         prismaClient.reposisiHistory.findMany({
@@ -126,18 +165,22 @@ export class PatientHistoryService {
           take,
           ...(cur ? { cursor: cur } : {}),
         }),
-        prismaClient.reposisiHistory.count({ where }),
+        doCount ? prismaClient.reposisiHistory.count({ where }) : Promise.resolve(null),
       ]);
 
       if (!rows.length) {
         throw new ResponseError(404, "Patient history not found");
       }
 
+      const nextCursor = rows.length === take ? rows[rows.length - 1].id : null;
+
       return {
         data: rows.map(mapHistory),
         total,
+        nextCursor,
         page: p,
         pageSize: ps,
+        pageCapped,
       };
     } catch (e) {
       if (e instanceof ResponseError) throw e;

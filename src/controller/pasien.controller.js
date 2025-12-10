@@ -33,8 +33,9 @@ export class PasienController {
       res.status(200).json({
         data: result.data,
         total: result.total,
-        page, // ← jangan ambil dari result.page (tidak ada)
-        pageSize, // ← sama
+        nextCursor: result.nextCursor,
+        page: result.page, // pakai nilai pasti dari service
+        pageSize: result.pageSize,
         totalActive: result.totalActive,
         totalNonActive: result.totalNonActive,
         success: true,

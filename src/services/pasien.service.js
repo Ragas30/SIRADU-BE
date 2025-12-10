@@ -15,6 +15,8 @@ const ALLOWED_SORT = new Set([
   "exitDate",
 ]);
 const ALLOWED_STATUSES = new Set(["ACTIVE", "NON_ACTIVE"]);
+const MAX_PAGE_SIZE = 200;
+const MAX_OFFSET_RECORDS = 50000; // lindungi DB dari OFFSET sangat besar
 
 function normalizeSort(sortBy, sortOrder) {
   const by =
@@ -44,6 +46,45 @@ function normalizeExitDate(input) {
     throw new ResponseError(422, "Format exitDate tidak valid");
   }
   return d;
+}
+
+function buildPagination({ page, pageSize, cursor }) {
+  const safePage =
+    Number.isFinite(+page) && +page > 0 ? Number.parseInt(page, 10) : 1;
+  const rawSize =
+    Number.isFinite(+pageSize) && +pageSize > 0
+      ? Number.parseInt(pageSize, 10)
+      : 10;
+  const take = Math.min(rawSize, MAX_PAGE_SIZE);
+
+  if (cursor) {
+    return {
+      cursor: { id: String(cursor) },
+      skip: 1,
+      take,
+      page: safePage,
+      pageSize: take,
+      mode: "cursor",
+      offsetTooLarge: false,
+      pageCapped: false,
+    };
+  }
+
+  const rawSkip = (safePage - 1) * take;
+  const skip = Math.min(rawSkip, MAX_OFFSET_RECORDS);
+  const offsetTooLarge = rawSkip > MAX_OFFSET_RECORDS;
+  const pageCapped = offsetTooLarge;
+  const effectivePage = Math.floor(skip / take) + 1;
+
+  return {
+    skip,
+    take,
+    page: effectivePage,
+    pageSize: take,
+    mode: "offset",
+    offsetTooLarge,
+    pageCapped,
+  };
 }
 
 export class PasienService {
@@ -81,12 +122,8 @@ export class PasienService {
       params
     );
 
-    const page =
-      Number.isFinite(+params.page) && +params.page > 0 ? +params.page : 1;
-    const pageSize =
-      Number.isFinite(+params.pageSize) && +params.pageSize > 0
-        ? +params.pageSize
-        : 10;
+    const { skip, take, page, pageSize, cursor, mode, offsetTooLarge, pageCapped } =
+      buildPagination(params);
     const search = typeof params.search === "string" ? params.search.trim() : "";
 
     const rawStatus =
@@ -104,7 +141,6 @@ export class PasienService {
       params.sortBy,
       params.sortOrder
     );
-    const skip = (page - 1) * pageSize;
 
     const whereBase = {
       ...(search && {
@@ -125,12 +161,15 @@ export class PasienService {
 
     console.log("[DEBUG] Prisma whereList:", whereList);
 
-    const [data, total, totalActive, totalNonActive] = await Promise.all([
+    const doCount = mode === "offset"; // hindari count berat saat pakai cursor
+
+    const [data, groupedCounts] = await Promise.all([
       prismaClient.patient.findMany({
         where: whereList,
-        orderBy: { [sortBy]: sortOrder },
+        orderBy: [{ [sortBy]: sortOrder }, { id: "asc" }], // tambahkan id agar stabil untuk cursor
         skip,
-        take: pageSize,
+        take,
+        ...(cursor ? { cursor } : {}),
         select: {
           id: true,
           name: true,
@@ -146,12 +185,37 @@ export class PasienService {
           updatedAt: true,
         },
       }),
-      prismaClient.patient.count({ where: whereList }),
-      prismaClient.patient.count({ where: { ...whereBase, status: "ACTIVE" } }),
-      prismaClient.patient.count({
-        where: { ...whereBase, status: "NON_ACTIVE" },
-      }),
+      doCount
+        ? prismaClient.patient.groupBy({
+            by: ["status"],
+            where: whereBase,
+            _count: { status: true },
+          })
+        : Promise.resolve(null),
     ]);
+
+    const counts =
+      groupedCounts?.reduce(
+        (acc, row) => {
+          const value = row._count.status;
+          if (row.status === "ACTIVE") acc.active = value;
+          if (row.status === "NON_ACTIVE") acc.nonActive = value;
+          acc.total += value;
+          return acc;
+        },
+        { total: 0, active: 0, nonActive: 0 }
+      ) ?? null;
+
+    const total =
+      counts && status
+        ? status === "ACTIVE"
+          ? counts.active
+          : counts.nonActive
+        : counts?.total ?? null;
+    const totalActive = counts?.active ?? null;
+    const totalNonActive = counts?.nonActive ?? null;
+
+    const nextCursor = data.length === take ? data[data.length - 1].id : null;
 
     console.log("[DEBUG] Jumlah data ditemukan:", data.length);
     console.log(
@@ -163,7 +227,7 @@ export class PasienService {
       totalNonActive
     );
 
-    return { data, total, totalActive, totalNonActive };
+    return { data, total, totalActive, totalNonActive, nextCursor, page, pageSize, pageCapped };
   }
 
   static async getPasienById(id) {

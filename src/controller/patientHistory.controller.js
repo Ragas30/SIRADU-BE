@@ -18,7 +18,7 @@ export class PatientHistoryController {
       const sortOrder = normOrder(req.query.sortOrder);
       const cursor = req.query.cursor;
 
-      const { data, total } = await PatientHistoryService.getAllPatientHistories({
+      const { data, total, nextCursor } = await PatientHistoryService.getAllPatientHistories({
         page,
         pageSize,
         search,
@@ -29,6 +29,7 @@ export class PatientHistoryController {
       res.status(200).json({
         data,
         total,
+        nextCursor,
         page,
         pageSize,
         success: true,
@@ -51,7 +52,7 @@ export class PatientHistoryController {
       const sortOrder = normOrder(req.query.sortOrder);
       const cursor = req.query.cursor;
 
-      const { data, total } = await PatientHistoryService.getPatientHistoryByIdPatient(patientId, {
+      const { data, total, nextCursor } = await PatientHistoryService.getPatientHistoryByIdPatient(patientId, {
         page,
         pageSize,
         sortBy,
@@ -62,6 +63,7 @@ export class PatientHistoryController {
       res.status(200).json({
         data,
         total,
+        nextCursor,
         page,
         pageSize,
         success: true,
@@ -84,7 +86,7 @@ export class PatientHistoryController {
       const sortOrder = normOrder(req.query.sortOrder);
       const cursor = req.query.cursor;
 
-      const { data, total } = await PatientHistoryService.getPatientHistoryByPatientName(name, {
+      const { data, total, nextCursor } = await PatientHistoryService.getPatientHistoryByPatientName(name, {
         page,
         pageSize,
         sortBy,
@@ -95,6 +97,7 @@ export class PatientHistoryController {
       res.status(200).json({
         data,
         total,
+        nextCursor,
         page,
         pageSize,
         success: true,
